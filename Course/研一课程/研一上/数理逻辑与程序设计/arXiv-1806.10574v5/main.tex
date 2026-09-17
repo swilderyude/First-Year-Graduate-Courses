@@ -1,0 +1,870 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2019
+
+% ready for submission
+\usepackage[final,nonatbib]{neurips_2019}
+\usepackage{xcolor}
+\usepackage{verbatim}
+\usepackage{caption}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2019}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2019}
+
+% to avoid loading the natbib package, add option nonatbib:
+%     \usepackage[nonatbib]{neurips_2019}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\usepackage{float}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{afterpage}
+
+\bibliographystyle{abbrv}
+
+
+%--------Theorem Environments--------
+%theoremstyle{plain} --- default
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{conj}[thm]{Conjecture}
+\newtheorem{quest}[thm]{Question}
+
+\theoremstyle{definition}
+\newtheorem{defn}[thm]{Definition}
+\newtheorem{defns}[thm]{Definitions}
+\newtheorem{con}[thm]{Construction}
+\newtheorem{exmp}[thm]{Example}
+\newtheorem{exmps}[thm]{Examples}
+\newtheorem{notn}[thm]{Notation}
+\newtheorem{notns}[thm]{Notations}
+\newtheorem{addm}[thm]{Addendum}
+\newtheorem{exer}[thm]{Exercise}
+\newtheorem{prog}[thm]{Program}
+
+\theoremstyle{remark}
+\newtheorem{rem}[thm]{Remark}
+\newtheorem{rems}[thm]{Remarks}
+\newtheorem{warn}[thm]{Warning}
+\newtheorem{sch}[thm]{Scholium}
+
+\title{\textit{This} Looks Like \textit{That}: Deep Learning for Interpretable Image Recognition}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{%
+  Chaofan Chen\thanks{\protect Contributed equally}\\
+  %Department of Computer Science\\
+  Duke University\\
+  %Durham, NC 27708\\
+  \small{\texttt{cfchen@cs.duke.edu}}
+  % examples of more authors
+  \And
+  Oscar Li\footnotemark[1]\\
+  %Machine Learning Department\\
+  %Carnegie Mellon University\thanks{\protect Work done while this author was an undergraduate student at Duke University}\\
+  %Pittsburgh, PA 15213\\
+  %\texttt{oscarli@cmu.edu}
+  %Department of Computer Science\\
+  Duke University\\
+  %Durham, NC 27708\\
+  \small{\texttt{oscarli@alumni.duke.edu}}
+  \And
+  Chaofan Tao\\
+  %Department of Computer Science\\
+  Duke University\\
+  %Durham, NC 27708\\
+  \small{\texttt{chaofan.tao@duke.edu}}
+  \And
+  Alina Jade Barnett\\
+  %Department of Computer Science\\
+  Duke University\\
+  %Durham, NC 27708\\
+  \small{\texttt{abarnett@cs.duke.edu}}
+  \And
+  Jonathan Su\\
+  %Informatics \& Decision Support\\
+  MIT Lincoln Laboratory\thanks{\protect DISTRIBUTION STATEMENT A. Approved for public release. Distribution is unlimited. This material is based upon work supported by the Under Secretary of Defense for Research and Engineering under Air Force Contract No. FA8702-15-D-0001. Any opinions, findings, conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the Under Secretary of Defense for Research and Engineering.}\\
+  %Lexington, MA 02421\\
+  \small{\texttt{su@ll.mit.edu}}
+  \And
+  Cynthia Rudin\\
+  %Departments of Computer Science \& ECE\\
+  Duke University\\
+  %Durham, NC 27708\\
+  \small{\texttt{cynthia@cs.duke.edu}}
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  When we are faced with challenging image classification tasks, we often explain our reasoning by dissecting the image, and pointing out prototypical aspects of one class or another. The mounting evidence for each of the classes helps us make our final decision. In this work, we introduce a deep network architecture -- \textit{prototypical part network} (ProtoPNet), that reasons in a similar way: the network dissects the image by finding prototypical parts, and combines evidence from the prototypes to make a final classification. The model thus reasons in a way that is qualitatively similar to the way ornithologists, physicians, and others would explain to people on how to solve challenging image classification tasks. The network uses only image-level labels for training without any annotations for parts of images. We demonstrate our method on the CUB-200-2011 dataset and the Stanford Cars dataset. Our experiments show that ProtoPNet can achieve comparable accuracy with its analogous non-interpretable counterpart, and when several ProtoPNets are combined into a larger network, it can achieve an accuracy that is on par with some of the best-performing deep models. Moreover, ProtoPNet provides a level of interpretability that is absent in other interpretable deep models.
+\end{abstract}
+
+\section{Introduction}
+%\input{introduction.tex}
+% Introduction
+How would you describe why the image in Figure \ref{fig:introbird} looks like a clay colored sparrow? Perhaps the bird's head and wing bars look like those of a prototypical clay colored sparrow.
+%, even though its throat might look like that of either a grasshopper sparrow or a clay colored sparrow.
+When we describe how we classify images, we might focus on parts of the image and compare them with prototypical parts of images from a given class. This method of reasoning is commonly used in difficult identification tasks: e.g., radiologists compare suspected tumors in X-ray scans with prototypical tumor images for diagnosis of cancer \cite{HoltEtAl2005}. The question is whether we can ask a machine learning model to imitate this way of thinking, and to explain its reasoning process in a human-understandable way.
+
+%\begin{comment}
+\begin{figure}[t]
+  \centering
+    \includegraphics[scale=0.1,trim={0 0 0 0},clip]{introbird-1.png}
+  \caption{Image of a clay colored sparrow and how parts of it look like some learned prototypical parts of a clay colored sparrow used to classify the bird's species.%The smaller images in the second column are the same as the original test image (leftmost), except that each of them has a bounding box generated by our model -- the content within the bounding box is considered by our model to look similar to the prototypical parts (in the third column) learned by our algorithm. The images in the fourth column are the source images of the prototypical parts in the third column, where the bounding boxes indicate where the corresponding prototypical parts come from. Finally, the rightmost column provides heat maps that indicate how similar each prototypical part resembles part of the test bird.
+  }
+  \label{fig:introbird}
+\end{figure}
+%\end{comment}
+%\input{figures.tex}
+
+
+The goal of this work is to define a form of interpretability in image processing (\textit{this} looks like \textit{that}) that agrees with the way humans describe their own thinking in classification tasks. In this work, we introduce a network architecture -- \textit{prototypical part network} (ProtoPNet), that accommodates this definition of interpretability, where comparison of image parts to learned prototypes is integral to the way our network reasons about new examples.
+%-- our learning algorithm selects, from the training set, a limited number of prototypical parts that are useful in classifying a new image, and learns an internal notion of distance for comparing parts of the new image to those learned prototypes.
+Given a new bird image as in Figure \ref{fig:introbird}, our model is able to identify several parts of the image where it thinks that \textit{this} part of the image looks like \textit{that} prototypical part of some class, and makes its prediction based on a weighted combination of the similarity scores between parts of the image and the learned prototypes. In this way, our model is \textit{interpretable}, in the sense that it has a transparent reasoning process when making predictions. Our experiments show that
+%interpretability can be gained without losing much accuracy: on datasets such as CUB-200-2011 \cite{CUB_200_2011},
+our ProtoPNet can achieve comparable accuracy with its analogous non-interpretable counterpart, and when several ProtoPNets are combined into a larger network, our model can achieve an accuracy that is on par with some of the best-performing deep models. Moreover, our ProtoPNet provides a level of interpretability that is absent in other interpretable deep models.
+
+%\subsection{Related work}
+%\input{related_work.tex}
+% Related work
+Our work relates to (but contrasts with) those that perform \textit{posthoc} interpretability analysis for a trained convolutional neural network (CNN). In posthoc analysis, one interprets a trained CNN by fitting explanations to how it performs classification.
+%There are two general approaches to understanding CNNs posthoc: one is class-specific activation maximization \cite{Erhan,hinton2012practical,lee2009convolutional,Oord16,Nguyen16,simonyan2013deep,Yosinski2015}, and the other is input-specific posthoc visualization such as deconvolution \cite{ZeilerFe14} and gradient-based saliency visualization \cite{simonyan2013deep,pmlr-v70-sundararajan17a,smilkov2017smoothgrad,Selvaraju_2017_ICCV}.
+Examples of posthoc analysis techniques include activation maximization \cite{Erhan,hinton2012practical,lee2009convolutional,Oord16,Nguyen16,simonyan2013deep,Yosinski2015}, deconvolution \cite{ZeilerFe14}, and saliency visualization \cite{simonyan2013deep,pmlr-v70-sundararajan17a,smilkov2017smoothgrad,Selvaraju_2017_ICCV}.
+All of these posthoc visualization methods do not explain the reasoning process of how a network \textit{actually} makes its decisions. In contrast, our network has a built-in case-based reasoning process, and the explanations generated by our network are actually used during classification and are not created posthoc.
+
+Our work relates closely to works that build attention-based interpretability into CNNs. These models aim to expose the parts of an input the network focuses on when making decisions.
+%Some models aggregate the feature maps of the last convolutional layer into class activation maps \cite{pinheiro2015image,zhou2016learning}, and others interpret these feature maps themselves as attention maps focusing on different semantic parts of an input image (e.g., multi-attention CNN \cite{zheng2017learning}). Some attention-based models go one-step further by first identifying and ``cropping out'' the most important parts and use only these parts in the downstream reasoning process: these models usually use a neural network for extracting the important parts, and the part-extraction network can be trained with heavy (part-level) supervision (e.g., \cite{zhang2014part,huang2016part,zhou2018interpretable}), or weak supervision (e.g., selective search-based region proposal network \cite{uijlings2013selective,girshick2014rich,girshick2015fast,ren2015faster}, sampling-based generator network in \cite{Regina16_NLP}, neural activation constellations \cite{simon2015neural}, two-level attention models \cite{xiao2015application}, and recurrent attention CNN \cite{fu2017look}).
+Examples of attention models include class activation maps \cite{zhou2016learning} and various part-based models (e.g., \cite{zheng2017learning,zhang2014part,huang2016part,zhou2018interpretable,uijlings2013selective,girshick2014rich,girshick2015fast,ren2015faster,simon2015neural,xiao2015application,fu2017look}; see Table \ref{table:accuracy}).
+However, attention-based models can only tell us \textit{which parts} of the input they are looking at -- they do not point us to prototypical cases to which the parts they focus on are similar. On the other hand, our ProtoPNet is not only able to expose the parts of the input it is looking at, but also point us to prototypical cases similar to those parts. Section \ref{sec:comparison} provides a comparison between attention-based models and our ProtoPNet.
+
+Recently there have also been attempts to quantify the interpretability of visual representations in a CNN, by measuring the overlap between highly activated image regions and labeled visual concepts \cite{bau2017network,zhang2017interpretable}.
+%Bau et al. proposed the network dissection framework that uses the overlap between the receptive field of top activations and regions corresponding to labeled visual concepts as a measure of the interpretability of the convolutional unit \cite{bau2017network}. Zhang et al. used this measure of interpretability and proposed architectural modifications to traditional CNNs \cite{zhang2017interpretable}. These are useful, but
+However, to quantitatively measure the interpretability of a convolutional unit in a network requires fine-grained labeling for a significantly large dataset specific to the purpose of the network.
+%While Bau et al. have built the Broden dataset for scene/object classification networks \cite{bau2017network}, this dataset
+The existing Broden dataset for scene/object classification networks \cite{bau2017network} is not well-suited to measure the unit interpretability of a network trained for fine-grained classification (which is our main application), because the concepts detected by that network may not be present in the Broden dataset. Hence, in our work, we do not focus on quantifying unit interpretability of our network, but instead look at the \textit{reasoning process} of our network which is qualitatively similar to that of humans. %We do not aim to compare everything identified in the image to a known, labeled, visual concept; instead, we aim to pinpoint parts of the image that are important and similar to prototypical parts of images from a class.
+
+%Our network architecture includes a prototype layer that replaces the conventional inner product with the squared $L^2$ distance computation. This is not new \cite{ghiasi2017generalizing}, but in our work we require the filters to be \textit{identical} to the latent representation of some training image patch. This added constraint allows us to interpret the filters as prototypical parts of images from different classes, and also necessitates a more specialized training procedure for our network. We implement the squared $L^2$ distance computation using the conventional inner product convolution, as described in \cite{nalaie2017efficient}.
+
+Our work uses generalized convolution \cite{ghiasi2017generalizing,nalaie2017efficient} by including a prototype layer that computes squared $L^2$ distance instead of conventional inner product. In addition, we propose to constrain each convolutional filter to be \textit{identical} to some latent training patch. This added constraint allows us to interpret the convolutional filters as visualizable prototypical image parts and also necessitates a novel training procedure.
+
+Our work relates closely to other case-based classification techniques using k-nearest neighbors \cite{weinberger2009distance,pmlr-v2-salakhutdinov07a,papernot2018deep} or prototypes \cite{Priebe2003,Bien2011,WuTabak2017}, and very closely, to the Bayesian Case Model \cite{KimRuSh14}. It relates to traditional ``bag-of-visual-words'' models used in image recognition \cite{lazebnik2006beyond,fei2005bayesian,jiang2007towards,sivic2003video,nister2006scalable}. These models (like our ProtoPNet) also learn a set of prototypical parts for comparison with an unseen image. However, the feature extraction in these models is performed by Scale Invariant Feature Transform (SIFT) \cite{lowe1999object}, and the learning of prototypical patches (``visual words'') is done separately from the feature extraction (and the learning of the final classifier). In contrast, our ProtoPNet uses a specialized neural network architecture for feature extraction and prototype learning, and can be trained in an \textit{end-to-end} fashion. Our work also relates to works (e.g., \cite{branson2014bird,lin2015deep}) that identify a set of prototypes for pose alignment. However, their prototypes are templates for warping images and similarity with these prototypes does not provide an explanation for why an image is classified in a certain way.
+%Our work relates to Ming et al. \cite{ming2019interpretable}, who incorporated prototype learning into recurrent neural networks for modeling sequential data. However, unlike our work, their work does not deal with image data.
+Our work relates most closely to Li et al. \cite{LiLiuChenRudin}, who proposed a network architecture that builds case-based reasoning into a neural network. However, their model requires a decoder (for visualizing prototypes),
+%and when trained on datasets of natural images such as CUB-200-2011, the decoder fails to produce realistically looking prototype images.
+which fails to produce realistic prototype images when trained on datasets of natural images.
+In contrast, our model does not require a decoder for prototype visualization. Every prototype is the latent representation of some training image patch, which naturally and faithfully becomes the prototype's visualization. The removal of the decoder also facilitates the training of our network, leading to better explanations and better accuracy. Unlike the work of Li et al., whose prototypes represent entire images, our model's prototypes can have much smaller spatial dimensions and represent \textit{prototypical parts of images}. This allows for more fine-grained comparisons because different parts of an image can now be compared to different prototypes.
+Ming et al. \cite{ming2019interpretable} recently took the concepts in \cite{LiLiuChenRudin} and the preprint of an earlier version of this work, which both involve integrating prototype learning into CNNs for image recognition, and used these concepts to develop prototype learning in recurrent neural networks for modeling sequential data.
+
+\begin{comment} Moreover, in our work, we also associate each prototype with a class, and use a different training objective (e.g., the \textit{patch-based} clustering and separation cost)
+%(the clustering cost and the separation cost are both new to our work)
+and a more elaborate training scheme to cluster image patches of a particular class around the prototypes of the same class, while separating image patches of different classes. The result is a more meaningful latent space for comparison with prototypical parts, which also leads to improved explanations and improved accuracy over Li et al.
+\end{comment}
+
+
+\begin{comment}
+\begin{figure}[t]
+  \centering
+    \includegraphics[scale=0.35,trim={2.5cm 9.7cm 2.5cm 0},clip]{architecture-1.png}
+  \caption{ProtoPNet architecture.}
+  \label{fig:architecture}
+\end{figure}
+\end{comment}
+
+
+%\input{figures.tex}
+%\input{figures_2.tex}
+% FIGURES
+\begin{figure}[t]
+    \centering
+    %\begin{subfigure}[b]{0.9\textwidth}
+    %     \centering
+    %     \includegraphics[scale=0.27]{introbird-1.png}
+    %     \caption{Image of a clay colored sparrow and how parts of it look like some learned prototypical parts of a clay colored sparrow used to classify the bird's species.}
+    %    \label{fig:introbird}
+    % \end{subfigure}
+    % \medskip
+     \begin{subfigure}[b]{0.9\textwidth}
+         \centering
+         \includegraphics[width=0.8\textwidth,trim={4.5cm 25cm 4.5cm 0},clip]{architecture-1.png}
+     \end{subfigure}
+     \caption{ProtoPNet architecture.}
+     \label{fig:architecture}
+     \medskip
+     \begin{subfigure}[b]{0.9\textwidth}
+         \centering
+         \includegraphics[width=\textwidth,trim={0 0 2.2cm 0},clip]{walkthrough_RedBelliedWoodpecker_vgg19-1.png}
+     \end{subfigure}
+     \caption{The reasoning process of our network in deciding the species of a bird (top).}
+     \label{fig:walkthrough}
+     %\medskip
+     %\begin{subfigure}[b]{0.9\textwidth}
+     %    \centering
+     %    \includegraphics[width=0.9\textwidth]{visual_comparison-1.png}
+     %    \caption{Visual comparison of different types of model interpretability: (a) object-level attention map (e.g. class activation map \cite{zhou2016learning}); (b) part attention (provided by attention-based interpretable models); and (c) part attention with similar prototypical parts (provided by our model).}
+     %    \label{fig:visual_comparison}
+     %\end{subfigure}
+     %\medskip
+     %\begin{subfigure}[b]{0.9\textwidth}
+     %    \centering
+     %    \includegraphics[width=\textwidth]{nearest_neighbors-1.png}
+     %    \caption{Nearest prototypes to images and nearest images to prototype.}
+     %    \label{fig:nearest_neighbors}
+     %\end{subfigure}
+     %\caption{ProtoPNet architecture and reasoning process.}
+     \begin{subfigure}[b]{0.9\textwidth}
+         \centering
+         \includegraphics[width=0.8\textwidth]{visual_comparison-1.png}
+     \end{subfigure}
+     \caption{Visual comparison of different types of model interpretability: (a) object-level attention map (e.g., class activation map \cite{zhou2016learning}); (b) part attention (provided by attention-based interpretable models); and (c) part attention with similar prototypical parts (provided by our model).}
+    \label{fig:visual_comparison}
+     \medskip
+     \begin{subfigure}[b]{0.9\textwidth}
+         \centering
+         \includegraphics[width=0.87\textwidth]{nearest_neighbors-1.png}
+     \end{subfigure}
+     \caption{Nearest prototypes to images and nearest images to prototypes. The prototypes are learned from the training set.}
+     \label{fig:nearest_neighbors}
+     %\caption{ProtoPNet architecture, reasoning process, visual comparison between attention models and ProtoPNet, analysis of latent space in a trained ProtoPNet}
+\end{figure}
+
+
+
+
+
+
+\begin{comment}
+\begin{figure}[t]
+    \centering
+    %\begin{subfigure}[b]{0.9\textwidth}
+    %     \centering
+    %     \includegraphics[scale=0.27]{introbird-1.png}
+    %     \caption{Image of a clay colored sparrow and how parts of it look like some learned prototypical parts of a clay colored sparrow used to classify the bird's species.}
+    %    \label{fig:introbird}
+    % \end{subfigure}
+    % \medskip
+     \begin{subfigure}[b]{0.9\textwidth}
+         \centering
+         \includegraphics[width=0.8\textwidth,trim={2.5cm 9.7cm 2.5cm 0},clip]{architecture-1.png}
+         \caption{ProtoPNet architecture.}
+         \label{fig:architecture}
+     \end{subfigure}
+     \medskip
+     \begin{subfigure}[b]{0.9\textwidth}
+         \centering
+         \includegraphics[width=\textwidth,trim={0 0 2.2cm 0},clip]{walkthrough_RedBelliedWoodpecker_vgg19-1.png}
+         \caption{The reasoning process of our network in deciding the species of a bird (top).}
+         \label{fig:walkthrough}
+     \end{subfigure}
+     %\medskip
+     %\begin{subfigure}[b]{0.9\textwidth}
+     %    \centering
+     %    \includegraphics[width=0.9\textwidth]{visual_comparison-1.png}
+     %    \caption{Visual comparison of different types of model interpretability: (a) object-level attention map (e.g. class activation map \cite{zhou2016learning}); (b) part attention (provided by attention-based interpretable models); and (c) part attention with similar prototypical parts (provided by our model).}
+     %    \label{fig:visual_comparison}
+     %\end{subfigure}
+     %\medskip
+     %\begin{subfigure}[b]{0.9\textwidth}
+     %    \centering
+     %    \includegraphics[width=\textwidth]{nearest_neighbors-1.png}
+     %    \caption{Nearest prototypes to images and nearest images to prototype.}
+     %    \label{fig:nearest_neighbors}
+     %\end{subfigure}
+     %\caption{ProtoPNet architecture and reasoning process.}
+     \begin{subfigure}[b]{0.9\textwidth}
+         \centering
+         \includegraphics[width=0.8\textwidth]{visual_comparison-1.png}
+         \caption{Visual comparison of different types of model interpretability: (a) object-level attention map (e.g. class activation map \cite{zhou2016learning}); (b) part attention (provided by attention-based interpretable models); and (c) part attention with similar prototypical parts (provided by our model).}
+         \label{fig:visual_comparison}
+     \end{subfigure}
+     \medskip
+     \begin{subfigure}[b]{0.9\textwidth}
+         \centering
+         \includegraphics[width=0.9\textwidth]{nearest_neighbors-1.png}
+         \caption{Nearest prototypes to images and nearest images to prototype.}
+         \label{fig:nearest_neighbors}
+     \end{subfigure}
+     \caption{ProtoPNet architecture, reasoning process, visual comparison between attention models and ProtoPNet, analysis of latent space in a trained ProtoPNet}
+\end{figure}
+\end{comment}
+
+
+
+
+\begin{comment}
+\begin{figure}[t]
+  \centering
+    \includegraphics[scale=0.27,trim={0 0 0 0},clip]{introbird-1.png}
+  \caption{Image of a clay colored sparrow and how parts of it look like some learned prototypical parts of a clay colored sparrow used to classify the bird's species.%The smaller images in the second column are the same as the original test image (leftmost), except that each of them has a bounding box generated by our model -- the content within the bounding box is considered by our model to look similar to the prototypical parts (in the third column) learned by our algorithm. The images in the fourth column are the source images of the prototypical parts in the third column, where the bounding boxes indicate where the corresponding prototypical parts come from. Finally, the rightmost column provides heat maps that indicate how similar each prototypical part resembles part of the test bird.
+  }
+  \label{fig:introbird}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+    \includegraphics[scale=0.35,trim={2.5cm 9.7cm 2.5cm 0},clip]{architecture-1.png}
+  \caption{ProtoPNet architecture.}
+  \label{fig:architecture}
+\end{figure}
+
+\begin{figure*}[t]
+  \centering
+    \includegraphics[scale=0.35,trim={0 0 2.2cm 0},clip]{walkthrough_RedBelliedWoodpecker_vgg19-1.png}
+  \caption{The reasoning process of our network in deciding the species of a bird (top).}
+  \label{fig:walkthrough}
+\end{figure*}
+
+\begin{figure}[t]
+  \centering
+    \includegraphics[scale=0.35,trim={0 0 0 0},clip]{visual_comparison-1.png}
+  \caption{Visual comparison of different types of model interpretability: (a) object-level attention map (e.g. class activation map \cite{zhou2016learning}); (b) part attention (provided by attention-based interpretable models); and (c) part attention with similar prototypical parts (provided by our model).}
+  \label{fig:visual_comparison}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+    \includegraphics[scale=0.36,trim={0 0 0 0},clip]{nearest_neighbors-1.png}
+  \caption{Nearest prototypes to images and nearest images to prototype.}
+  \label{fig:nearest_neighbors}
+\end{figure}
+\end{comment}
+
+\afterpage{\clearpage}
+
+\section{Case study 1: bird species identification}
+%\input{bird.tex}
+% Case study 1: bird species identification
+In this case study, we introduce the architecture and the training procedure of our ProtoPNet in the context of bird species identification, and provide a detailed walk-through of how our network classifies a new bird image and explains its prediction. We trained and evaluated our network on the CUB-200-2011 dataset \cite{CUB_200_2011} of $200$ bird species. %Since the dataset has only about $30$ images per class, we performed offline data augmentation using random rotation, skew, shear, distortion, and left-right flip to enlarge the training set, so that each class has approximately $1200$ training images.
+We performed offline data augmentation, and trained on images cropped using the bounding boxes provided with the dataset. %and full images
+
+\subsection{ProtoPNet architecture}
+%\input{architecture.tex}
+% ProtoPNet architecture
+Figure \ref{fig:architecture} gives an overview of the architecture of our ProtoPNet. Our network consists of a regular convolutional neural network $f$, whose parameters are collectively denoted by $w_{\text{conv}}$, followed by a prototype layer $g_{\mathbf{p}}$ and a fully connected layer $h$ with weight matrix $w_h$ and no bias. For the regular convolutional network $f$, our model use the convolutional layers from models such as VGG-16, VGG-19 \cite{simonyan2014very}, ResNet-34, ResNet-152 \cite{he2016deep}, DenseNet-121, or DenseNet-161 \cite{huang2017densely} (initialized with filters pretrained on ImageNet \cite{deng2009imagenet}), followed by two additional $1 \times 1$ convolutional layers in our experiments. We use ReLU as the activation function for all convolutional layers except the last for which we use the sigmoid activation function.
+
+Given an input image $\mathbf{x}$ (such as the clay colored sparrow in Figure \ref{fig:architecture}), the convolutional layers of our model extract useful features $f(\mathbf{x})$ to use for prediction. Let $H \times W \times D$ be the shape of the convolutional output $f(\mathbf{x})$. For the bird dataset with input images resized to $224 \times 224 \times 3$, the spatial dimension of the convolutional output is $H = W = 7$, and the number of output channels $D$ in the additional convolutional layers is chosen from three possible values: $128$, $256$, $512$, using cross validation. The network learns $m$ prototypes $\mathbf{P} = \left\{\mathbf{p}_j\right\}_{j=1}^{m}$, whose shape is $H_1 \times W_1 \times D$ with $H_1 \leq H$ and $W_1 \leq W$. In our experiments, we used $H_1 = W_1 = 1$. Since the depth of each prototype is the same as that of the convolutional output but the height and the width of each prototype is smaller than those of the whole convolutional output, each prototype will be used to represent some prototypical activation pattern in a \textit{patch} of the convolutional output, which in turn will correspond to some prototypical image patch in the original pixel space. Hence, each prototype $\mathbf{p}_j$ can be understood as the latent representation of some prototypical \textit{part} of some bird image in this case study. As a schematic illustration, the first prototype $\mathbf{p}_1$ in Figure \ref{fig:architecture} corresponds to the head of a clay colored sparrow, and the second prototype $\mathbf{p}_2$ the head of a Brewer's sparrow. Given a convolutional output $\mathbf{z} = f(\mathbf{x})$, the $j$-th prototype unit $g_{\mathbf{p}_j}$ in the prototype layer $g_{\mathbf{p}}$ computes the squared $L^2$ distances between the $j$-th prototype $\mathbf{p}_j$ and all patches of $\mathbf{z}$ that have the same shape as $\mathbf{p}_j$, and inverts the distances into similarity scores. The result is an activation map of similarity scores whose value indicates how strong a prototypical part is present in the image. This activation map preserves the spatial relation of the convolutional output%(e.g. the upper-left value in the activation map is the similarity score between the upper-left patch of $\mathbf{z}$ and the prototype)
+, and can be upsampled to the size of the input image to produce a heat map that identifies which part of the input image is most similar to the learned prototype. The activation map of similarity scores produced by each prototype unit $g_{\mathbf{p}_j}$ is then reduced using global max pooling to a single similarity score, which can be understood as how strongly a prototypical part is present in \textit{some} patch of the input image. In Figure \ref{fig:architecture}, the similarity score between the first prototype $\mathbf{p}_1$, a clay colored sparrow head prototype, and the most activated (upper-right) patch of the input image of a clay colored sparrow is $3.954$, and the similarity score between the second prototype $\mathbf{p}_2$, a Brewer's sparrow head prototype, and the most activated patch of the input image is $1.447$. This shows that our model finds that the head of a clay colored sparrow has a stronger presence than that of a Brewer's sparrow in the input image. Mathematically, the prototype unit $g_{\mathbf{p}_j}$ computes $g_{\mathbf{p}_j}(\mathbf{z}) = \max_{\tilde{\mathbf{z}} \in \text{patches}(\mathbf{z})}
+\log\left((\|\tilde{\mathbf{z}}-\mathbf{p}_j\|_2^2 + 1)/(\|\tilde{\mathbf{z}}-\mathbf{p}_j\|_2^2 + \epsilon)\right)$.
+%the following:
+%\begin{equation*}
+%\begin{split}
+%g_{\mathbf{p}_j}(\mathbf{z}) &= \max_{\tilde{\mathbf{z}} \in \text{patches}(\mathbf{z})}
+%\log\left((\|\tilde{\mathbf{z}}-\mathbf{p}_j\|_2^2 + 1)/(\|\tilde{\mathbf{z}}-\mathbf{p}_j\|_2^2 + \epsilon)\right) \\
+%&= \max_{\tilde{\mathbf{z}} \in \text{patches}(\mathbf{z})}
+%\log\left(1 + (1 - \epsilon)/(\|\tilde{\mathbf{z}}-\mathbf{p}_j\|_2^2 + \epsilon)\right).
+%\end{split}
+%\end{equation*}
+The function $g_{\mathbf{p}_j}$ is \textit{monotonically decreasing} with respect to $\|\tilde{\mathbf{z}}-\mathbf{p}_j\|_2$ (if $\tilde{\mathbf{z}}$ is the closest latent patch to $\mathbf{p}_j$). Hence, if the output of the $j$-th prototype unit $g_{\mathbf{p}_j}$ is large, then there is a patch in the convolutional output that is (in $2$-norm) very close to the $j$-th prototype in the latent space, and this in turn means that there is a patch in the input image that has a similar concept to what the $j$-th prototype represents.
+
+In our ProtoPNet, we allocate a pre-determined number of prototypes $m_k$ for each class $k \in \{1, ..., K\}$ ($10$ per class in our experiments), so that every class will be represented by some prototypes in the final model.
+%, and no class will be left out.
+Section S9.2 of the supplement discusses the choice of $m_k$ and other hyperparameters in greater detail.
+Let $\mathbf{P}_k \subseteq \mathbf{P}$ be the subset of prototypes that are allocated to class $k$: these prototypes should capture the most relevant parts for identifying images of class $k$. %Henceforth, we shall also use the notation $\mathbf{p}^k_l$ to denote the $l$-th prototype in the $k$-th class, and $m_k$ to denote the number of prototypes in class $k$. In short, we have $\mathbf{P}_k = \{\mathbf{p}^k_l\}_{l=1}^{m_k}$ and $\sum_{k=1}^K m_k = m$. %{\color{red}Clarify the notation!}
+
+Finally, the $m$ similarity scores produced by the prototype layer $g_{\mathbf{p}}$ are multiplied by the weight matrix $w_h$ in the fully connected layer $h$ to produce the output logits, which are normalized using softmax to yield the predicted probabilities for a given image belonging to various classes.
+
+ProtoPNet's inference computation mechanism can be viewed as a special case of a more general type of probabilistic inference under some reasonable assumptions. This interpretation is presented in detail in Section S2 of the supplementary material.
+
+%for classification. We use $w_h^{(k,j)}$ to denote the $(k,j)$-th entry in $w_h$ that corresponds to the weight connection between the output of the $j$-th prototype unit $g_{\mathbf{p}_j}$ and the logit of class $k$. The predicted probabilities for a given image belonging to each class are obtained from the output logits using softmax normalization.
+
+%\subsection{A probabilistic interpretation of ProtoPNet}\label{sec:prob_interpretation}
+%\input{prob_interpretation.tex}
+
+
+\subsection{Training algorithm}\label{sec:training}
+%\input{algorithm.tex}
+% Training algorithm
+The training of our ProtoPNet is divided into: (1) stochastic gradient descent (SGD) of layers before the last layer; (2) projection of prototypes; (3) convex optimization of last layer. It is possible to cycle through these three stages more than once. The entire training algorithm is summarized in an algorithm chart, which can be found in Section S9.3 of the supplement.
+
+\textbf{Stochastic gradient descent (SGD) of layers before last layer:} In the first training stage, we aim to learn a meaningful latent space, where the most important patches for classifying images are clustered (in $L^2$-distance) around semantically similar prototypes of the images' true classes, and the clusters that are centered at prototypes from different classes are well-separated.
+\begin{comment}those important patches from different classes will be separated into distinct clusters.
+\end{comment}
+To achieve this goal, we jointly optimize the convolutional layers' parameters $w_{\text{conv}}$ and the prototypes $\mathbf{P} = \left\{\mathbf{p}_j\right\}_{j=1}^{m}$ in the prototype layer $g_{\mathbf{p}}$ using SGD, while keeping the last layer weight matrix $w_h$ fixed. Let $D = [\mathbf{X}, \mathbf{Y}]= \{(\mathbf{x}_i, y_i)\}_{i=1}^n$ be the set of training images.
+%, with labels {\color{red} $y_i \in \{1, ..., K\}$} for $i \in \{1, ..., n\}$.
+%As mentioned before, we allocate a pre-determined number of prototypes for each class ($10$ per class in our experiments), and use $\mathbf{P}_k \subseteq \mathbf{P}$ to denote the subset of prototypes that are allocated to class $k$.
+The optimization problem we aim to solve here is: %$\min_{\mathbf{P},\alpha_{\text{conv}}} \textrm{CrossEntropy}(h \circ g_{\mathbf{p}} \circ f(\mathbf{X}), \mathbf{Y}) + \lambda_1\textrm{Clst}(\mathbf{P}, \mathbf{X}, \mathbf{Y}) + \lambda_2\textrm{Sep}(\mathbf{P}, \mathbf{X}, \mathbf{Y})$.
+%(\mathbf{P}, \mathbf{X}, \mathbf{Y})
+\begin{equation*}
+\begin{split}
+&\min_{\mathbf{P},w_{\text{conv}}} \frac{1}{n}\sum_{i=1}^n \textrm{CrsEnt}(h \circ g_{\mathbf{p}} \circ f(\mathbf{x_i}), \mathbf{y_i}) + \lambda_1\textrm{Clst} + \lambda_2\textrm{Sep}, \quad \text{where Clst and Sep are defined by}\\
+&\textrm{Clst} = \frac{1}{n}\sum_{i=1}^n \min_{j: \mathbf{p}_j \in \mathbf{P}_{y_i}} \min_{\mathbf{z} \in \text{patches}(f(\mathbf{x}_i))} \| \mathbf{z} - \mathbf{p}_j\|_2^2;\textrm{Sep} = -\frac{1}{n}\sum_{i=1}^n \min_{j: \mathbf{p}_j \not\in \mathbf{P}_{y_i}} \min_{\mathbf{z} \in \text{patches}(f(\mathbf{x}_i))} \|\mathbf{z} - \mathbf{p}_j\|_2^2.
+\end{split}
+\end{equation*}
+The cross entropy loss (CrsEnt) penalizes misclassification on the training data. %The cluster (\textrm{Clst}) and separation (\textrm{Sep}) cost  are defined as $\textrm{Clst}(\mathbf{P}, \mathbf{X}, \mathbf{Y})
+%= \frac{1}{n}\sum_{i=1}^n \min_{j: \mathbf{p}_j \in \mathbf{P}_{y_i}} \min_{\mathbf{z} \in \text{patches}(f(\mathbf{x}_i))} \| \mathbf{z} - \mathbf{p}_j\|_2^2$ and $\textrm{Sep}(\mathbf{P}, \mathbf{X}, \mathbf{Y})
+%= -\frac{1}{n}\sum_{i=1}^n \min_{j: \mathbf{p}_j \not\in \mathbf{P}_{y_i}} \min_{\tilde{\mathbf{z}} \in \text{patches}(f(\mathbf{x}_i))} \|\tilde{\mathbf{z}} - \mathbf{p}_j\|_2^2$.
+%\begin{equation*}
+%\textrm{Clst}(\mathbf{P}, \mathbf{X}, \mathbf{Y})
+%= \frac{1}{n}\sum_{i=1}^n \min_{j: \mathbf{p}_j \in \mathbf{P}_{y_i}} %\min_{\tilde{\mathbf{z}} \in \text{patches}(f(\mathbf{x}_i))} \|\tilde{\mathbf{z}} - \mathbf{p}_j\|_2^2,
+%\end{equation*}
+%\begin{equation*}
+%\textrm{Sep}(\mathbf{P}, \mathbf{X}, \mathbf{Y})
+%= -\frac{1}{n}\sum_{i=1}^n \min_{j: \mathbf{p}_j \not\in \mathbf{P}_{y_i}} %\min_{\tilde{\mathbf{z}} \in \text{patches}(f(\mathbf{x}_i))} \|\tilde{\mathbf{z}} - \mathbf{p}_j\|_2^2.
+%\end{equation*}
+\begin{comment}
+For a given training image of class $k$, the cluster cost penalizes \textit{large} distance between the closest pair of patches and class $k$ prototypes, and the separation cost penalizes \textit{small} distance between the closest pair of patches and non-class $k$ prototypes.
+\end{comment}
+The minimization of the cluster cost (Clst) encourages each training image to have some latent patch that is close to at least one prototype of its own class, while the minimization of the separation cost (Sep) encourages every latent patch of a training image to stay away from the prototypes \textit{not} of its own class. These terms shape the latent space into a semantically meaningful clustering structure, which facilitates the $L^2$-distance-based classification of our network.
+
+In this training stage, we also fix the last layer $h$, whose weight matrix is $w_h$. Let $w_h^{(k, j)}$ be the \mbox{$(k, j)$-th} entry in $w_h$ that corresponds to the weight connection between the output of the $j$-th prototype unit $g_{\mathbf{p}_j}$ and the logit of class $k$. Given a class $k$, we set $w_h^{(k, j)} = 1$ for all $j$ with $\mathbf{p}_j \in \mathbf{P}_k$ and $w_h^{(k, j)} = -0.5$ for all $j$ with $\mathbf{p}_j \not\in \mathbf{P}_k$ (when we are in this stage for the first time). Intuitively, the positive connection between a class $k$ prototype and the class $k$ logit means that similarity to a class $k$ prototype should increase the predicted probability that the image belongs to class $k$, and the negative connection between a non-class $k$ prototype and the class $k$ logit means that similarity to a non-class $k$ prototype should decrease class $k$'s predicted probability. By fixing the last layer $h$ in this way, we can force the network to learn a meaningful latent space because if a latent patch of a class $k$ image is too close to a non-class $k$ prototype, it will decrease the predicted probability that the image belongs to class $k$ and increase the cross entropy loss in the training objective.
+Note that both the separation cost and the negative connection between a non-class $k$ prototype and the class $k$ logit encourage prototypes of class $k$ to represent semantic concepts that are characteristic of class $k$ but not of other classes: if a class $k$ prototype represents a semantic concept that is also present in a non-class $k$ image, this non-class $k$ image will highly activate that class $k$ prototype, and this will be penalized by increased (i.e., less negative) separation cost and increased cross entropy (as a result of the negative connection). The separation cost is new to this paper, and has not been explored by previous works of prototype learning (e.g., \cite{branson2014bird,LiLiuChenRudin}). %In this SGD learning stage, there is no hard constraint that the prototypes $\mathbf{p}_j$ must be exactly some latent training patch: each prototype $\mathbf{p}_j$ is treated as a free variable and receives gradient just as other parameters before last layer.
+
+\textbf{Projection of prototypes:} To be able to visualize the prototypes as training image patches, we project (``push'') each prototype $\mathbf{p}_j$ onto the nearest latent training patch from the \textit{same} class as that of $\mathbf{p}_j$. In this way, we can conceptually equate each prototype with a training image patch. (Section \ref{sec:visualization} discusses how we visualize the projected prototypes.)
+%the latent representation of some training image patch after the first training stage is complete. {\color{red} too verbal  In this way we can conceptually equate each prototype with a training image patch, and visualize it by finding that training image patch in the original pixel space. Note that we cannot simply push each prototype $\mathbf{p}_j$ onto the closest latent representation of training image patches from any class, because we are associating each prototype with some prototypical part of a particular class. Therefore, we push each prototype $\mathbf{p}_j$ onto the closest latent representation of training image patches from the \textit{same} class as that of $\mathbf{p}_j$.}
+Mathematically, for prototype $\mathbf{p}_j$ of class $k$, i.e., $\mathbf{p}_j \in \mathbf{P}_k$, we perform the following update:
+\[
+\mathbf{p}_j \leftarrow \arg\min_{\mathbf{z} \in \mathcal{Z}_j} \|\mathbf{z} - \mathbf{p}_j\|_2, \textrm{where }\; \mathcal{Z}_j = \{\tilde{\mathbf{z}}: \tilde{\mathbf{z}} \in \text{patches}(f(\mathbf{x}_i)) \;\forall i \text{ s.t. } y_i = k\}.
+\]
+\begin{comment}
+this projection stage amounts to setting each prototype $\mathbf{p}_j$ to $\arg\min_{\tilde{\mathbf{z}} \in \mathcal{Z}_j} \|\tilde{\mathbf{z}} - \mathbf{p}_j\|_2^2$, where $\mathcal{Z}_j$ is the set of class $k$'s training image patch representations, where $k$ is the class $\mathbf{p}_j$'s represents ($\mathbf{p}_j \in \mathbf{P}_k$): $\mathcal{Z}_j = \{\tilde{\mathbf{z}}: \tilde{\mathbf{z}} \in \text{patches}(f(\mathbf{x}_i)) \text{ for all } i \text{ with } y_i = k, \text{ where } k \text{ satisfies } \mathbf{p}_j \in \mathbf{P}_k\}$.
+\end{comment}
+%\begin{equation*}
+%\begin{split}
+%\mathcal{Z}_j = \{&\tilde{\mathbf{z}}: \tilde{\mathbf{z}} \in %\text{patches}(f(\mathbf{x}_i)) \text{ for all } i \text{ with } y_i = k,\\ &\text{ where } k \text{ satisfies } \mathbf{p}_j \in \mathbf{P}_k\}.
+%\end{split}
+%\end{equation*}
+The following theorem provides some theoretical understanding of how prototype projection affects classification accuracy. We use another notation for prototypes $\mathbf{p}^k_l$, where $k$ represents the class identity of the prototype and $l$ is the index of that prototype among all prototypes of that class.
+
+\begin{thm}
+Let $h \circ g_{\mathbf{p}} \circ f$ be a ProtoPNet. For each $k$, $l$, we use $\mathbf{b}^k_l$ to denote the value of the $l$-th prototype for class $k$ \textbf{before} the projection of $\mathbf{p}^k_l$ to the nearest latent training patch of class $k$, and use $\mathbf{a}^k_l$ to denote its value \textbf{after} the projection. Let $\mathbf{x}$ be an input image that is correctly classified by the ProtoPNet before the projection, $\mathbf{z}^k_l = \arg\min_{\tilde{\mathbf{z}} \in \text{patches}(f(\mathbf{x}))} \|\tilde{\mathbf{z}} - \mathbf{b}^k_l\|_2$ be the nearest patch of $f(\mathbf{x})$ to the prototype $\mathbf{p}^k_l$ before the projection (i.e., $\mathbf{b}^k_l$), and $c$ be the correct class label of $\mathbf{x}$.
+
+\textbf{Suppose} that:
+\textbf{(A1)} $\mathbf{z}^k_l$ is also the nearest latent patch to prototype $\mathbf{p}^k_l$ after the projection ($\mathbf{a}^k_l$), i.e., $\mathbf{z}^k_l = \arg\min_{\tilde{\mathbf{z}} \in \text{patches}(f(\mathbf{x}))} \|\tilde{\mathbf{z}} - \mathbf{a}^k_l\|_2$;
+\textbf{(A2)} there exists some $\delta$ with $0 < \delta < 1$ such that: \quad \textbf{(A2a)} for all incorrect classes' prototypes $k \neq c$ and $l \in \{1, ..., m_k\}$, we have $\|\mathbf{a}^k_l - \mathbf{b}^k_l\|_2 \leq \theta\|\mathbf{z}^k_l - \mathbf{b}^k_l\|_2 - \sqrt{\epsilon}$, where we define $\theta = \min\left(\sqrt{1 + \delta} - 1, 1 - \frac{1}{\sqrt{2 - \delta}}\right)$ ($\epsilon$ comes from the prototype activation function $g_{\mathbf{p}_j}$ defined in Section 2.1);
+\textbf{(A2b)} for the correct class $c$ and for all $l \in \{1, ..., m_c\}$, we have $\|\mathbf{a}^c_l - \mathbf{b}^c_l\|_2 \leq (\sqrt{1 + \delta} - 1)\|\mathbf{z}^c_l - \mathbf{b}^c_l\|_2$ and $\|\mathbf{z}^c_l - \mathbf{b}^c_l\|_2 \leq \sqrt{1 - \delta}$;
+%\textbf{(A2b)} for the correct class $c$, we have either $\mathbf{a}^c_l = \mathbf{z}^c_l$ or $\|\mathbf{a}^c_l - \mathbf{b}^c_l\|_2 \leq (\sqrt{1 + \delta} - 1)\|\mathbf{z}^c_l - \mathbf{b}^c_l\|_2$; and \textbf{(A2c)} for the correct class $c$, we also have $\|\mathbf{z}^c_l - \mathbf{b}^c_l\|_2^2 \leq 1 - \delta$;
+\textbf{(A3)} the number of prototypes is the same for each class, which we denote by $m'$.
+\textbf{(A4)} for each class $k$, the weight connection in the fully connected last layer $h$ between a class $k$ prototype and the class $k$ logit is $1$, and that between a non-class $k$ prototype and the class $k$ logit is $0$ (i.e., $w_h^{(k, j)} = 1$ for all $j$ with $\mathbf{p}_j \in \mathbf{P}_k$ and $w_h^{(k, j)} = 0$ for all $j$ with $\mathbf{p}_j \not\in \mathbf{P}_k$).
+
+\textbf{Then} after projection, the output logit for the correct class $c$ can decrease at most by $\Delta_{\max} = m'\log((1 + \delta)(2 - \delta))$, and the output logit for every incorrect class $k \neq c$ can increase at most by $\Delta_{\max}$. If the output logits between the top-$2$ classes are at least $2\Delta_{\max}$ apart, then the projection of prototypes to their nearest latent training patches does not change the prediction of $\mathbf{x}$.
+\end{thm}
+
+
+
+\begin{comment}
+\begin{thm}
+Let $h \circ g_{\mathbf{p}} \circ f$ be a ProtoPNet. For each $k$, $l$, we use $\mathbf{b}^k_l$ to denote the value of the $l$-th prototype for class $k$ \textbf{before} the projection of $\mathbf{p}^k_l$ to the nearest latent training patch of class $k$, and use $\mathbf{a}^k_l$ to denote its value \textbf{after} the projection. Let $\mathbf{x}$ be an input image that is correctly classified by the ProtoPNet before the projection, $\mathbf{z}^k_l = \arg\min_{\tilde{\mathbf{z}} \in \text{patches}(f(\mathbf{x}))} \|\tilde{\mathbf{z}} - \mathbf{b}^k_l\|_2$ be the nearest patch of $f(\mathbf{x})$ to the prototype $\mathbf{p}^k_l$ before the projection (i.e., $\mathbf{b}^k_l$), and $c$ be the correct class label of $\mathbf{x}$. Suppose that: \textbf{(A1)} $\mathbf{z}^k_l = \arg\min_{\tilde{\mathbf{z}} \in \text{patches}(f(\mathbf{x}))} \|\tilde{\mathbf{z}} - \mathbf{a}^k_l\|_2$ is also the nearest latent patch to the prototype $\mathbf{p}^k_l$ after the projection (i.e., $\mathbf{a}^k_l$); \textbf{(A2)} there exists some $\delta$ with $0 < \delta < 1$ such that: \textbf{(A2a)} for all incorrect classes $k \neq c$ and $l \in \{1, ..., m_k\}$, we have $\|\mathbf{a}^k_l - \mathbf{b}^k_l\|_2 \leq \theta\|\mathbf{z}^k_l - \mathbf{b}^k_l\|_2 - \sqrt{\epsilon}$, where we define $\theta = \min\left(\sqrt{1 + \delta} - 1, 1 - \frac{1}{\sqrt{2 - \delta}}\right)$ ($\epsilon$ comes from the prototype activation function $g_{\mathbf{p}_j}$ defined in Section 2.1); \textbf{(A2b)} for the correct class $c$ and for all $l \in \{1, ..., m_c\}$ with $\mathbf{a}^c_l \neq \mathbf{z}^c_l$, we have $\|\mathbf{a}^c_l - \mathbf{b}^c_l\|_2 \leq (\sqrt{1 + \delta} - 1)\|\mathbf{z}^c_l - \mathbf{b}^c_l\|_2$ and $\|\mathbf{z}^c_l - \mathbf{b}^c_l\|_2^2 \leq 1 - \delta$; \textbf{(A3)} the number of prototypes is the same for each class, i.e., $m_k = m_{k'}$ for all $k, k'$ (we denote the number of prototypes per class by $m'$); \textbf{(A4)} for each class $k$, the weight connection in the last layer $h$ between a class $k$ prototype and the class $k$ logit is $1$, and that between a non-class $k$ prototype and the class $k$ logit is $0$. %(i.e., $w_h^{(k, j)} = 1$ for all $j$ with $\mathbf{p}_j \in \mathbf{P}_k$ and $w_h^{(k, j)} = 0$ for all $j$ with $\mathbf{p}_j \not\in \mathbf{P}_k$).
+
+Then the output logit for the correct class $c$ decreases at most by $\Delta_{\max} = m'\log((1 + \delta)(2 - \delta))$, and the output logit for the incorrect classes $k \neq c$ increases at most by $\Delta_{\max}$. If, in addition, the output logits between the top-$2$ classes are at least $2\Delta_{\max}$ apart prior to the projection, the projection of prototypes will not change the prediction of $\mathbf{x}$.
+\end{thm}
+\end{comment}
+
+Intuitively speaking, the theorem states that, if prototype projection does not move the prototypes by much (assured by the optimization of the cluster cost Clst), the prediction does not change for examples that the model predicted correctly with some confidence before the projection. The proof is in Section S1 of the supplement.
+
+Note that prototype projection has the same time complexity as feedforward computation of a regular convolutional layer followed by global average pooling, a configuration common in standard CNNs (e.g., ResNet, DenseNet), because the former takes the minimum distance over all prototype-sized patches, and the latter takes the average of dot-products over all filter-sized patches. Hence, prototype projection does not introduce extra time complexity in training our network.
+
+\begin{comment} each prototype is close to a latent training patch ($\|\mathbf{a}^k_l - \mathbf{b}^k_l\|_2$ is small) and each input image has a latent patch near each prototype of the correct class ($\|\mathbf{z}^c_l - \mathbf{b}^c_l\|_2$ is small), and if the network is confident about its prediction (the top-$2$ logits are sufficiently far apart), then prototype projection has little effect on accuracy.
+\end{comment}
+
+\textbf{Convex optimization of last layer:} In this training stage, we perform a convex optimization on the weight matrix $w_h$ of last layer $h$. The goal of this stage is to adjust the last layer connection $w_h^{(k, j)}$
+%between the output of the $j$-th prototype unit $g_{\mathbf{p}_j}$ and the logit of class $k$
+, so that for $k$ and $j$ with $\mathbf{p}_j \not\in \mathbf{P}_k$, our final model has the sparsity property $w_h^{(k, j)} \approx 0$ (initially fixed at $-0.5$). This sparsity is desirable because it means that our model relies less on a \textit{negative} reasoning process of the form ``this bird is of class $k'$ because it is \textit{not} of class $k$ (it contains a patch that is \textit{not} prototypical of class $k$).''
+%to reach its final prediction.
+The optimization problem we solve here is: $\min_{w_h} \frac{1}{n}\sum_{i=1}^n \textrm{CrsEnt}(h \circ g_{\mathbf{p}} \circ f(\mathbf{x_i}), \mathbf{y_i}) + \lambda\sum_{k=1}^{K} \sum_{j:\mathbf{p}_j \not\in \mathbf{P}_k} |w_h^{(k, j)}|$.
+%as follows: \begin{equation*}
+%\min_{w_h} \;\textrm{CrossEntropy}(h \circ g_{\mathbf{p}} \circ f(\mathbf{X}), \mathbf{Y}) + \lambda\sum_{k=1}^{K} \sum_{j:\mathbf{p}_j \not\in \mathbf{P}_k} |w_h^{(k, j)}|.
+%\end{equation*}
+This optimization is convex because we fix all the parameters from the convolutional and prototype layers. This stage further improves accuracy without changing the learned latent space or prototypes.
+
+
+
+\subsection{Prototype visualization}\label{sec:visualization}
+%\input{visualization.tex}
+% Prototype visualization
+Given a prototype $\mathbf{p}_j$ and the training image $\mathbf{x}$ whose latent patch is used as $\mathbf{p}_j$ during prototype projection, how do we decide which patch of $\mathbf{x}$ (in the pixel space) corresponds to $\mathbf{p}_j$? In our work, we use the image patch of $\mathbf{x}$ that is highly activated by $\mathbf{p}_j$ as the visualization of $\mathbf{p}_j$. The reason is that the patch of $\mathbf{x}$ that corresponds to $\mathbf{p}_j$ should be the one that $\mathbf{p}_j$ activates most strongly on, and we can find the patch of $\mathbf{x}$ on which $\mathbf{p}_j$ has the strongest activation by forwarding $\mathbf{x}$ through a trained ProtoPNet and upsampling the activation map produced by the prototype unit $g_{\mathbf{p}_j}$ (before max-pooling) to the size of the image $\mathbf{x}$ -- the most activated patch of $\mathbf{x}$ is indicated by the high activation region in the (upsampled) activation map. We then visualize $\mathbf{p}_j$ with the smallest rectangular patch of $\mathbf{x}$ that encloses pixels whose corresponding activation value in the upsampled activation map from $g_{\mathbf{p}_j}$ is at least as large as the $95$th-percentile of all activation values in that same map. Section S7 of the supplement describes prototype visualization in greater detail.
+
+\subsection{Reasoning process of our network}
+%\input{reasoning.tex}
+% Reasoning process of our network
+\begin{comment}
+\begin{figure*}[t]
+  \centering
+    \includegraphics[scale=0.35,trim={0 0 2.2cm 0},clip]{walkthrough_RedBelliedWoodpecker_vgg19-1.png}
+  \caption{The reasoning process of our network in deciding the species of a bird (top).}
+  \label{fig:walkthrough}
+\end{figure*}
+\end{comment}
+
+Figure \ref{fig:walkthrough} shows the reasoning process of our ProtoPNet in reaching a classification decision on a test image of a red-bellied woodpecker at the top of the figure. Given this test image $\mathbf{x}$, our model compares its latent features $f(\mathbf{x})$ against the learned prototypes. In particular, for each class $k$, our network tries to find evidence for $x$ to be of class $k$ by comparing its latent patch representations with every learned prototype $\mathbf{p}_j$ of class $k$. For example, in Figure \ref{fig:walkthrough} (left), our network tries to find evidence for the red-bellied woodpecker class by comparing the image's latent patches with each prototype (visualized in ``Prototype'' column) of that class. This comparison produces a map of similarity scores towards each prototype, which was upsampled and superimposed on the original image to see which part of the given image is activated by each prototype. As shown in the ``Activation map'' column in Figure \ref{fig:walkthrough} (left), the first prototype of the red-bellied woodpecker class activates most strongly on the head of the testing bird, and the second prototype on the wing: the most activated image patch of the given image for each prototype is marked by a bounding box in the ``Original image'' column -- this is the image patch that the network considers to look like the corresponding prototype. In this case, our network finds a high similarity between the head of the given bird and the \textit{prototypical} head of a red-bellied woodpecker (with a similarity score of $6.499$), as well as between the wing and the \textit{prototypical} wing (with a similarity score of $4.392$). These similarity scores are weighted and summed together to give a final score for the bird belonging to this class. The reasoning process is similar for all other classes (Figure \ref{fig:walkthrough} (right)). The network finally correctly classifies the bird as a red-bellied woodpecker. Section S3 of the supplement provides more examples of how our ProtoPNet classifies previously unseen images of birds.
+
+%The reasoning process is similar when the network tries to find evidence for the given image being a bird of some other class (see Figure \ref{fig:walkthrough} (right)). The network finally decides that the given image must belong to the class of the highest total points, i.e. red-bellied woodpecker.
+
+
+
+%our model first extracts useful features using the convolutional layers $f$. The extracted features $f(\mathbf{x})$ are then compared against the learned prototypes $\mathbf{p}_j$. In particular, for each class $k$, our network
+%asks the question: is the given image a bird of class $k$? The network 
+%tries to find evidence for the given image belonging to class $k$ by comparing latent patches of the given image with each learned prototype $\mathbf{p}_j$ of class $k$ (i.e. $\mathbf{p}_j \in \mathbf{P}_k$). For example, in Figure \ref{fig:walkthrough} (left), the network tries to find evidence for the given image being a red-bellied woodpecker, by comparing its latent patches with each learned prototype (shown in ``Prototype'' column) of the red-bellied woodpecker class.
+%: the top three activated prototypes of the red-bellied woodpecker class are visualized in the ``Prototype'' column.
+%This comparison produces a map of similarity scores between latent patches of the given image and each learned prototype, which can be upsampled and superimposed on the original image to see which part of the given image is activated by each prototype. As shown in the ``Activation map'' column in Figure \ref{fig:walkthrough} (left), the first prototype of the red-bellied woodpecker class activates on the head of the given bird, and the second on the wing: the most activated image patch of the given image for each prototype is marked by a bounding box in the ``Original image'' column -- this is the image patch that the network considers to look like the corresponding prototype. In this case, our network finds a high similarity between the head of the given bird and the \textit{prototypical} head of a red-bellied woodpecker, and between the wing of the given bird and the \textit{prototypical} wing of a red-bellied woodpecker. The network then uses the maximum similarity score between (latent) patches of the given image and each prototype as the similarity score between the given image and the prototype. The final score is a weighted sum of all the similarity scores between the image and the prototypes. The reasoning process is similar when the network tries to find evidence for the given image being a bird of some other class (see Figure \ref{fig:walkthrough} (right)). The network finally decides that the given image must belong to the class of the highest total points, i.e. red-bellied woodpecker.
+
+%-- we can interpret this similarity score as a measure of how much the concept represented by the prototype is present in \textit{some} part of the given image. 
+
+%In Figure \ref{fig:walkthrough} (left), the prototypical head of a red-bellied woodpecker is present in some part of the given image with a similarity score of $6.499$, and the prototypical wing of a red-bellied woodpecker is present with a similarity score of $4.392$.
+
+%The similarity scores are weighted by the last layer connections between the prototypes and the class we are considering (red-bellied woodpecker), and summed together to give a final score for the bird belonging to this class.
+
+%to obtain the points contributed by the prototypes to the given image being classified as a red-bellied woodpecker.
+
+%In Figure \ref{fig:walkthrough} (left), the first prototype contributes $7.669$ points, and the second $4.950$ points, and so on, to the given image being classified as a red-bellied woodpecker.
+
+%In Figure \ref{fig:walkthrough}, the total points contributed by the prototypes to the given bird being classified as a red-bellied woodpecker is $32.736$, and the total points contributed by the prototypes to the given bird being classified as a red-cockaded woodpecker is $16.886$. These total points are precisely the output logits of these two classes. Finally, the network decides that the given image must belong to the class of the highest total points, i.e. red-bellied woodpecker. More examples of how our network classifies can be found in the supplement.
+
+
+
+\subsection{Comparison with baseline models and attention-based interpretable deep models}\label{sec:comparison}
+%\input{comparison.tex}
+% Comparison with baseline models and attention-based interpretable deep models
+\begin{comment}
+\begin{figure}[t]
+  \centering
+    \includegraphics[scale=0.35,trim={0 0 0 0},clip]{visual_comparison-1.png}
+  \caption{Visual comparison of different types of model interpretability: (a) object-level attention map (e.g., class activation map \cite{zhou2016learning}); (b) part attention (provided by attention-based interpretable models); and (c) part attention with similar prototypical parts (provided by our model).}
+  \label{fig:visual_comparison}
+\end{figure}
+\end{comment}
+
+
+
+\begin{table}[ht]
+%\small
+\centering
+\captionsetup{justification=centering}
+\caption{Top: Accuracy comparison on cropped bird images of CUB-200-2011\\
+      Bottom: Comparison of our model with other deep models}
+\label{table:accuracy}
+\begin{tabular}{|l|l|l||l|l|l|}
+\hline
+Base & ProtoPNet & Baseline & Base & ProtoPNet & Baseline \\ \hline
+VGG16 & 76.1 $\pm$ 0.2  & 74.6 $\pm$ 0.2 & VGG19 & 78.0 $\pm$ 0.2 & 75.1 $\pm$ 0.4 \\ \hline
+Res34 & 79.2 $\pm$ 0.1 & 82.3 $\pm$ 0.3 & Res152 & 78.0 $\pm$ 0.3 & 81.5 $\pm$ 0.4
+\\ \hline
+Dense121 & 80.2 $\pm$ 0.2 & 80.5 $\pm$ 0.1 & Dense161 & 80.1 $\pm$ 0.3 & 82.2 $\pm$ 0.2
+\\ \hline
+\end{tabular}
+
+% \centering
+% \caption{Comparison of our model with other deep models}
+% \label{table:comparison_with_other_models}
+\begin{tabular}{|l|l|}
+\hline
+Interpretability & Model: accuracy                      
+
+\\ \hline
+None & \textbf{B-CNN}\cite{lin2015bilinear}: 85.1 (bb), 84.1 (full)                                         
+\\ \hline
+\begin{tabular}[c]{@{}l@{}}Object-level attn.\end{tabular}                                & \textbf{CAM}\cite{zhou2016learning}: 70.5 (bb), 63.0 (full)  \\ \hline
+
+\begin{tabular}[c]{@{}l@{}}Part-level\\ attention \end{tabular}                                                                            & \begin{tabular}[c]{@{}l@{}} \textbf{Part R-CNN}\cite{zhang2014part}: 76.4 (bb+anno.); \textbf{PS-CNN} \cite{huang2016part}: 76.2 (bb+anno.);\\
+\textbf{PN-CNN} \cite{branson2014bird}: 85.4 (bb+anno.); \textbf{DeepLAC}\cite{lin2015deep}: 80.3 (anno.);\\ \textbf{SPDA-CNN}\cite{zhang2016spda}: 85.1 (bb+anno.); \textbf{PA-CNN}\cite{krause2015fine}: 82.8 (bb);\\ \textbf{MG-CNN}\cite{wang2015multiple}: 83.0 (bb), 81.7 (full); \textbf{ST-CNN}\cite{jaderberg2015spatial}: 84.1 (full);\\ \textbf{2-level attn.}\cite{xiao2015application}: 77.9 (full); \textbf{FCAN}\cite{liu2016fully}: 82.0 (full);\\ \textbf{Neural const.}\cite{simon2015neural}: 81.0 (full); \textbf{MA-CNN}\cite{zheng2017learning}: 86.5 (full);\\ \textbf{RA-CNN}\cite{fu2017look}: 85.3 (full)\end{tabular} \\ \hline
+
+\begin{tabular}[c]{@{}l@{}}Part-level attn. +\\ prototypical cases\end{tabular} &
+
+\begin{tabular}[c]{@{}l@{}} \textbf{ProtoPNet} (ours): 
+                           80.8 (full, VGG19+Dense121+Dense161-based)  \\
+\quad\quad\quad\quad\quad\quad\quad\;\; 84.8 (bb, VGG19+ResNet34+DenseNet121-based)
+\end{tabular}
+
+%\begin{tabular}[c]{@{}l@{}}\textbf{ProtoPNet} (ours): 84.8 (bb, VGG19+ResNet34+DenseNet121-based)\end{tabular}
+
+%ProtoPNet (ours): 84.8 (bb, VGG19+ResNet34+DenseNet121-based)
+
+\\ \hline
+\end{tabular}
+\end{table}
+
+
+The accuracy of our ProtoPNet (with various base CNN architectures) on cropped bird images is compared to that of the corresponding baseline model in the top of Table \ref{table:accuracy}: the first number in each cell gives the mean accuracy, and the second number gives the standard deviation, over three runs.
+%\begin{table}[h]
+%\centering
+%\caption{Accuracy comparison on cropped bird images of CUB-200-2011}
+%\label{table:accuracy}
+%\begin{tabular}{|l|l|l|l|}
+%\hline
+%Base architecture & Accuracy of ProtoPNet & Accuracy of baseline & Difference \\ \hline
+%VGG16                 & 76.3                  &                      &            \\ \hline
+%VGG19                 & 78.2                  &                      &            \\ \hline
+%ResNet34              & 79.2                  &                      &            \\ \hline
+%ResNet152             & 78.3                  &                      &            \\ \hline
+%DenseNet121           & 80.4                  &                      &            \\ \hline
+%DenseNet161           & 80.1                  &                      &            \\ \hline
+%\end{tabular}
+%\end{table}
+To ensure fairness of comparison, the baseline models (without the prototype layer) were trained on the same augmented dataset of cropped bird images as the corresponding ProtoPNet. As we can see, the test accuracy of our ProtoPNet is comparable with that of the corresponding baseline (non-interpretable) model: the loss of accuracy is at most $3.5\%$ when we switch from the non-interpretable baseline model to our interpretable ProtoPNet.
+%(The accuracy comparison for full bird images is in the supplement.)
+We can further improve the accuracy of ProtoPNet by \textit{adding the logits of several ProtoPNet models together}. Since each ProtoPNet can be understood as a ``scoring sheet'' (as in Figure \ref{fig:walkthrough}) for each class, adding the logits of several ProtoPNet models is equivalent to creating a combined scoring sheet where (weighted) similarity with prototypes from all these models is taken into account to compute the total points for each class -- the combined model will have the same interpretable form when we combine several ProtoPNet models in this way, though there will be more prototypes for each class. The test accuracy on cropped bird images of combined ProtoPNets can reach $84.8\%$, which is on par with some of the best-performing deep models that were also trained on cropped images (see bottom of Table \ref{table:accuracy}). We also trained a VGG19-, DenseNet121-, and DenseNet161-based ProtoPNet on full images: the test accuracy of the combined network can go above $80\%$ -- at $80.8\%$, even though the test accuracy of each individual network is $72.7\%$, $74.4\%$, and $75.7\%$, respectively. Section S3.1 of the supplement illustrates how combining several ProtoPNet models can improve accuracy while preserving interpretability.
+
+Moreover, our ProtoPNet provides a level of interpretability that is absent in other interpretable deep models. In terms of the type of explanations offered, Figure \ref{fig:visual_comparison} provides a visual comparison of different types of model interpretability. At the coarsest level, there are models that offer object-level attention (e.g., class activation maps \cite{zhou2016learning}) as explanation: this type of explanation (usually) highlights the entire object as the ``reason'' behind a classification decision, as shown in Figure \ref{fig:visual_comparison}(a). At a finer level, there are numerous models that offer part-level attention: this type of explanation highlights the important parts that lead to a classification decision, as shown in Figure \ref{fig:visual_comparison}(b). Almost all attention-based interpretable deep models offer this type of explanation (see the bottom of Table \ref{table:accuracy}). In contrast, our model not only offers part-level attention, but also provides similar prototypical cases, and uses similarity to prototypical cases of a particular class as justification for classification (see Figure \ref{fig:visual_comparison}(c)). This type of interpretability is absent in other interpretable deep models. In terms of how attention is generated, some attention models generate attention with auxiliary part-localization models trained with part annotations (e.g., \cite{zhang2014part,zhang2016spda,branson2014bird,lin2015deep,huang2016part}); other attention models generate attention with ``black-box'' methods -- e.g., RA-CNN \cite{fu2017look} uses another neural network (attention proposal network) to decide where to look next; multi-attention CNN \cite{zheng2017learning} uses aggregated convolutional feature maps as ``part attentions.'' There is no explanation for why the attention proposal network decides to look at some region over others, or why certain parts are highlighted in those convolutional feature maps. In contrast, our ProtoPNet generates attention based on similarity with learned prototypes: it requires no part annotations for training, and explains its attention naturally -- it is looking at \textit{this} region of input because \textit{this} region is similar to \textit{that} prototypical example. Although other attention models focus on similar regions (e.g., head, wing, etc.) as our ProtoPNet, they cannot be made into a case-based reasoning model like ours: the only way to find prototypes on other attention models is to analyze \textit{posthoc} what activates a convolutional filter of the model most strongly and think of that as a prototype -- however, since such prototypes do not participate in the actual model computation, any explanations produced this way are not always faithful to the classification decisions.
+The bottom of Table \ref{table:accuracy} compares the accuracy of our model with that of some state-of-the-art models on this dataset: ``full'' means that the model was trained and tested on full images, ``bb'' means that the model was trained and tested on images cropped using bounding boxes (or the model used bounding boxes in other ways), and ``anno.'' means that the model was trained with keypoint annotations of bird parts. Even though there is some accuracy gap between our (combined) ProtoPNet model and the best of the state-of-the-art, this gap may be reduced through more extensive training effort, and the added interpretability in our model already makes it possible to bring richer explanations and better transparency to deep neural networks.
+
+\begin{comment}
+\begin{table}[h]
+%\small
+\centering
+\caption{Comparison of our model with other deep models}
+\label{table:comparison_with_other_models}
+\begin{tabular}{|l|l|}
+\hline
+Interpretability & Model: accuracy                      
+
+\\ \hline
+None & \textbf{B-CNN}\cite{lin2015bilinear}: 85.1 (bb), 84.1 (full)                                         
+\\ \hline
+\begin{tabular}[c]{@{}l@{}}Object-level attn.\end{tabular}                                & \textbf{CAM}\cite{zhou2016learning}: 70.5 (bb), 63.0 (full)  \\ \hline
+
+\begin{tabular}[c]{@{}l@{}}Part-level\\ attention \end{tabular}                                 
+\color{red}
+\begin{tabular}[c]{@{}l@{}} \textbf{Part R-CNN}\cite{zhang2014part}: 76.4 (bb+anno.); \textbf{PS-CNN} \cite{huang2016part}: 76.2 (bb+anno.);\\
+\textbf{PN-CNN} \cite{branson2014bird}: 85.4 (bb+anno.); \textbf{DeepLAC}\cite{lin2015deep}: 80.3 (anno.);\\ \textbf{SPDA-CNN}\cite{zhang2016spda}: 85.1 (bb+anno.); \textbf{PA-CNN}\cite{krause2015fine}: 82.8 (bb);\\ \textbf{MG-CNN}\cite{wang2015multiple}: 83.0 (bb), 81.7 (full); \textbf{ST-CNN}\cite{jaderberg2015spatial}: 84.1 (full);\\ \textbf{2-level attn.}\cite{xiao2015application}: 77.9 (full); \textbf{FCAN}\cite{liu2016fully}: 82.0 (full);\\ \textbf{Neural const.}\cite{simon2015neural}: 81.0 (full); \textbf{MA-CNN}\cite{zheng2017learning}: 86.5 (full);\\ \textbf{RA-CNN}\cite{fu2017look}: 85.3 (full)\end{tabular} \\ \hline
+
+\begin{tabular}[c]{@{}l@{}}Part-level attn. +\\ prototypical cases\end{tabular} &
+
+\begin{tabular}[c]{@{}l@{}}\textbf{ProtoPNet} (ours): 84.8 (bb, VGG19+ResNet34+DenseNet121-based)\end{tabular}
+
+%ProtoPNet (ours): 84.8 (bb, VGG19+ResNet34+DenseNet121-based)
+
+\\ \hline
+\end{tabular}
+\end{table}
+\end{comment}
+
+
+\subsection{Analysis of latent space and prototype pruning}
+%\input{analysis_latent_space.tex}
+% Analysis of latent space
+\begin{comment}
+\begin{figure}[t]
+  \centering
+    \includegraphics[scale=0.36,trim={0 0 0 0},clip]{nearest_neighbors-1.png}
+  \caption{Nearest prototypes to images and nearest images to prototype.}
+  \label{fig:nearest_neighbors}
+\end{figure}
+\end{comment}
+
+%\input{figures_2.tex}
+
+In this section, we analyze the structure of the latent space learned by our ProtoPNet.
+%We demonstrate that the nearest prototypes of a given image are mostly prototypical parts associated with the class of the image. We also show that the nearest patches of a given prototype frequently represent the same concept as the prototype, and they mostly come from those images in the same class as that of the prototype.
+Figure \ref{fig:nearest_neighbors}(a) shows the three nearest prototypes to a test image of a Florida jay and of a cardinal.
+%For a given image, we define its nearest prototype as the one that forms the closest patch-prototype pair in the latent space, over all patches of the given image.
+As we can see, the nearest prototypes for each of the two test images come from the same class as that of the image, and the test image's patch most activated by each prototype also corresponds to the same semantic concept as the prototype: in the case of the Florida jay, the most activated patch by each of the three nearest prototypes (all wing prototypes) indeed localizes the wing;
+%, and the three nearest prototypes are indeed those of the wing of a Florida jay.
+in the case of the cardinal, the most activated patch by each of the three nearest prototypes (all head prototypes) indeed localizes the head.
+%, and the three nearest prototypes are indeed those of the head of aof three 
+Figure \ref{fig:nearest_neighbors}(b) shows the nearest (i.e., most activated) image patches in the entire training/test set to three prototypes. As we can see, the nearest image patches to the first prototype in the figure are all heads of black-footed albatrosses, and the nearest image patches to the second prototype are all yellow stripes on the wings of golden-winged warblers. The nearest patches to the third prototype are feet of some gull. It is generally true that the nearest patches of a prototype all bear the same semantic concept, and they mostly come from those images in the same class as the prototype. Those prototypes whose nearest training patches have mixed class identities usually correspond to background patches, and they can be automatically pruned from our model. Section S8 of the supplement discusses pruning in greater detail.
+
+%Even though the prototype comes from a western gull, the second and the third nearest patch {\color{red} is this only on training} to the prototype actually comes from a glaucous-winged gull -- indeed the feet of these two species look very much alike. However, it is still generally true that the nearest patches of a prototype mostly come from those images in the same class as that of the prototype. {\color{red} For the prototypes that have nearest patches with mixed class identities, we introduce an automatic pruning algorithm in the supplementary material that removes these prototypes without losing predictive performance.}
+
+\section{Case study 2: car model identification}
+%\input{car.tex}
+% Case study 2: car model identification
+In this case study, we apply our method to car model identification. We trained our ProtoPNet on the Stanford Cars dataset \cite{KrauseStarkDengFei-Fei_3DRR2013} of $196$ car models, using similar architectures and training algorithm as we did on the CUB-200-2011 dataset. The accuracy of our ProtoPNet and the corresponding baseline model on this dataset is reported in Section S6 of the supplement. We briefly state our performance here: the test accuracy of our ProtoPNet is comparable with that of the corresponding baseline model ($\leq 3\%$ difference), and that of a combined network of a VGG19-, ResNet34-, and DenseNet121-based ProtoPNet can reach $91.4\%$, which is on par with some state-of-the-art models on this dataset, such as B-CNN \cite{lin2015bilinear} ($91.3\%$), RA-CNN \cite{fu2017look} ($92.5\%$), and MA-CNN \cite{zheng2017learning} ($92.8\%$).
+
+%We trained and evaluated our ProtoPNet on the Stanford Cars dataset \cite{KrauseStarkDengFei-Fei_3DRR2013} of $196$ car models.
+%Since the dataset has only about $40$ images per class, we performed offline data augmentation using random rotation, skew, shear, and left-right flip to enlarge the training set, so that each class has approximately $1300$ training images.
+
+%Table \ref{table:cars_accuracy} compares the accuracy of our ProtoPNet with that of the corresponding baseline model on this dataset: the test accuracy of our ProtoPNet is comparable with that of the corresponding baseline model, and the loss of accuracy is within $3\%$ when we switch from the non-interpretable baseline model to our interpretable ProtoPNet. The test accuracy of a combined network of the three ProtoPNets in Table \ref{table:cars_accuracy} can reach $91.4\%$, which is on par with some state-of-the-art models on this dataset, such as B-CNN \cite{lin2015bilinear} ($91.3\%$), RA-CNN \cite{fu2017look} ($92.5\%$), and MA-CNN \cite{zheng2017learning} ($92.8\%$).
+
+
+\section{Conclusion}
+%\input{conclusion.tex}
+% Conclusion
+In this work, we have defined a form of interpretability in image processing (\textit{this} looks like \textit{that}) that agrees with the way humans describe their own reasoning in classification. We have presented ProtoPNet -- a network architecture that accommodates this form of interpretability,
+%where the comparison of image parts to learned prototypes is integral to the way our network classifies new examples. We have
+described our specialized training algorithm, and applied our technique to bird species and car model identification.
+
+\textbf{Supplementary Material and Code}: The supplementary material and code are available at \url{https://github.com/cfchen-duke/ProtoPNet}.
+
+%NeurIPS requires electronic submissions.  The electronic submission site is
+%\begin{center}
+%  \url{https://cmt.research.microsoft.com/NeurIPS2019/}
+%\end{center}
+
+\subsubsection*{Acknowledgments}
+
+This work was sponsored in part by a grant from MIT Lincoln Laboratory to C. Rudin.
+
+%Use unnumbered third level headings for the acknowledgments. All acknowledgments
+%go at the end of the paper. Do not include acknowledgments in the anonymized
+%submission, only in the final paper.
+
+%References follow the acknowledgments. Use unnumbered first-level heading for
+%the references. Any choice of citation style is acceptable as long as you are
+%consistent. It is permissible to reduce the font size to \verb+small+ (9 point)
+%when listing the references. {\bf Remember that you can use more than eight
+%  pages as long as the additional pages contain \emph{only} cited references.}
+
+\medskip
+
+\small
+%\bibliography{main}
+\begin{thebibliography}{}
+\bibitem{bau2017network} D. Bau, B. Zhou, A. Khosla, A. Oliva, and A. Torralba. Network Dissection: Quantifying Interpretability of Deep Visual Representations. In Computer Vision and Pattern Recognition (CVPR), 2017 IEEE Conference on, pages 3319–3327. IEEE, 2017.
+
+\bibitem{Bien2011} J. Bien and R. Tibshirani. Prototype Selection for Interpretable Classification. Annals of Applied Statistics, 5(4):2403–2424, 2011.
+
+\bibitem{branson2014bird} S. Branson, G. Van Horn, S. Belongie, and P. Perona. Bird Species Categorization Using Pose Normalized Deep Convolutional Nets. In Proceedings of the British Machine Vision Conference. BMVA Press, 2014.
+
+\bibitem{deng2009imagenet} J. Deng, W. Dong, R. Socher, L.-J. Li, K. Li, and L. Fei-Fei. ImageNet: A Large-Scale Hierarchical Image Database. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 248–255. IEEE, 2009.
+
+\bibitem{Erhan} D. Erhan, Y. Bengio, A. Courville, and P. Vincent. Visualizing Higher-Layer Features of a Deep Network. Technical Report 1341, the University of Montreal, June 2009. Also presented at the Workshop on Learning Feature Hierarchies at the 26th International Conference on Machine Learning (ICML 2009), Montreal, Canada.
+
+\bibitem{fei2005bayesian} L. Fei-Fei and P. Perona. A Bayesian Hierarchical Model for Learning Natural Scene Categories. In Proceedings of the IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR), volume 2, pages 524–531. IEEE, 2005.
+
+\bibitem{fu2017look} J. Fu, H. Zheng, and T. Mei. Look Closer to See Better: Recurrent Attention Convolutional Neural Network for Fine-grained Image Recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 4438–4446, 2017.
+
+\bibitem{ghiasi2017generalizing} K. Ghiasi-Shirazi. Generalizing the Convolution Operator in Convolutional Neural Networks. Neural Processing Letters, 2019.
+
+\bibitem{girshick2015fast} R. Girshick. Fast R-CNN. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), pages 1440–1448, 2015.
+
+\bibitem{girshick2014rich} R. Girshick, J. Donahue, T. Darrell, and J. Malik. Rich feature hierarchies for accurate object detection and semantic segmentation. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 580–587, 2014.
+
+\bibitem{he2016deep} K. He, X. Zhang, S. Ren, and J. Sun. Deep Residual Learning for Image Recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 770–778, 2016.
+
+\bibitem{hinton2012practical} G. E. Hinton. A Practical Guide to Training Restricted Boltzmann Machines. In Neural Networks: Tricks of the Trade, pages 599–619. Springer, 2012.
+
+\bibitem{HoltEtAl2005} A. Holt, I. Bichindaritz, R. Schmidt, and P. Perner. Medical applications in case-based reasoning. The Knowledge Engineering Review, 20:289–292, 09 2005.
+
+\bibitem{huang2017densely} G. Huang, Z. Liu, L. van der Maaten, and K. Q. Weinberger. Densely Connected Convolutional Networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 4700–4708, 2017.
+
+\bibitem{huang2016part} S. Huang, Z. Xu, D. Tao, and Y. Zhang. Part-Stacked CNN for Fine-Grained Visual Categorization. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 1173–1182, 2016.
+
+\bibitem{jaderberg2015spatial} M. Jaderberg, K. Simonyan, A. Zisserman, et al. Spatial Transformer Networks. In Advances in Neural Information Processing Systems 28 (NIPS), pages 2017–2025, 2015.
+
+\bibitem{jiang2007towards} Y.-G. Jiang, C.-W. Ngo, and J. Yang. Towards Optimal Bag-of-Features for Object Categorization and Semantic Video Retrieval. In Proceedings of the 6th ACM International Conference on Image and Video Retrieval, pages 494–501. ACM, 2007.
+
+\bibitem{KimRuSh14} B. Kim, C. Rudin, and J. Shah. The Bayesian Case Model: A Generative Approach for Case-Based Reasoning and Prototype Classification. In Advances in Neural Information Processing Systems 27 (NIPS), pages 1952–1960, 2014.
+
+\bibitem{krause2015fine} J. Krause, H. Jin, J. Yang, and L. Fei-Fei. Fine-Grained Recognition without Part Annotations. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 5546–5555, 2015.
+
+\bibitem{KrauseStarkDengFei-Fei_3DRR2013} J. Krause, M. Stark, J. Deng, and L. Fei-Fei. 3D Object Representations for Fine-Grained Categorization. In 4th International IEEE Workshop on 3D Representation and Recognition (3dRR-13), Sydney, Australia, 2013.
+
+\bibitem{lazebnik2006beyond} S. Lazebnik, C. Schmid, and J. Ponce. Beyond Bags of Features: Spatial Pyramid Matching for Recognizing Natural Scene Categories. In Proceedings of the IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR), volume 2, pages 2169–2178. IEEE, 2006.
+
+\bibitem{lee2009convolutional} H. Lee, R. Grosse, R. Ranganath, and A. Y. Ng. Convolutional Deep Belief Networks for Scalable Unsupervised Learning of Hierarchical Representations. In Proceedings of the 26th International Conference on Machine Learning (ICML), pages 609–616, 2009.
+
+\bibitem{LiLiuChenRudin} O. Li, H. Liu, C. Chen, and C. Rudin. Deep Learning for Case-Based Reasoning through Prototypes: A Neural Network that Explains Its Predictions. In Proceedings of the Thirty-Second AAAI Conference on Artificial Intelligence (AAAI), 2018.
+
+\bibitem{lin2015deep} D. Lin, X. Shen, C. Lu, and J. Jia. Deep LAC: Deep Localization, Alignment and Classification for Fine-grained Recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 1666–1674, 2015.
+
+\bibitem{lin2015bilinear} T.-Y. Lin, A. RoyChowdhury, and S. Maji. Bilinear CNN Models for Fine-grained Visual Recognition. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), pages 1449–1457, 2015.
+
+\bibitem{liu2016fully} X. Liu, T. Xia, J. Wang, Y. Yang, F. Zhou, and Y. Lin. Fully Convolutional Attention Networks for Fine-Grained Recognition. arXiv preprint arXiv:1603.06765, 2016.
+
+\bibitem{lowe1999object} D. G. Lowe et al. Object Recognition from Local Scale-Invariant Features. In Proceedings of the International Conference on Computer Vision (ICCV), volume 99, pages 1150–1157, 1999.
+
+\bibitem{ming2019interpretable} Y. Ming, P. Xu, H. Qu, and L. Ren. Interpretable and Steerable Sequence Learning via Prototypes. In Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining (KDD’19), pages 903–913. ACM, 2019.
+
+\bibitem{nalaie2017efficient} K. Nalaie, K. Ghiasi-Shirazi, and M.-R. Akbarzadeh-T. Efficient Implementation of a Generalized Convolutional Neural Networks based on Weighted Euclidean Distance. In 2017 7th International Conference on Computer and Knowledge Engineering (ICCKE), pages 211–216. IEEE, 2017.
+
+\bibitem{Nguyen16} A. Nguyen, A. Dosovitskiy, J. Yosinski, T. Brox, and J. Clune. Synthesizing the preferred inputs for neurons in neural networks via deep generator networks. In Advances in Neural Information Processing Systems 29 (NIPS), pages 3387–3395, 2016.
+
+\bibitem{nister2006scalable} D. Nister and H. Stewenius. Scalable Recognition with a Vocabulary Tree. In Proceedings of the IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR), volume 2, pages 2161–2168. IEEE, 2006.
+
+\bibitem{papernot2018deep} N. Papernot and P. McDaniel. Deep k-Nearest Neighbors: Towards Confident, Interpretable and Robust Deep Learning. arXiv preprint arXiv:1803.04765, 2018.
+
+\bibitem{Priebe2003} C. E. Priebe, D. J. Marchette, J. G. DeVinney, and D. A. Socolinsky. Classification Using Class Cover Catch Digraphs. Journal of Classification, 20(1):003–023, 2003.
+
+\bibitem{ren2015faster} S. Ren, K. He, R. Girshick, and J. Sun. Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks. In Advances in Neural Information Processing Systems 28 (NIPS), pages 91–99, 2015.
+
+\bibitem{pmlr-v2-salakhutdinov07a} R. Salakhutdinov and G. Hinton. Learning a Nonlinear Embedding by Preserving Class Neighbourhood Structure. In Proceedings of the Eleventh International Conference on Artificial Intelligence and Statistics (AISTATS), volume 2 of Proceedings of Machine Learning Research, pages 412–419. PMLR, 2007.
+
+\bibitem{Selvaraju_2017_ICCV} R. R. Selvaraju, M. Cogswell, A. Das, R. Vedantam, D. Parikh, and D. Batra. Grad-CAM: Visual Explanations from Deep Networks via Gradient-Based Localization. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), Oct 2017.
+
+\bibitem{simon2015neural} M. Simon and E. Rodner. Neural Activation Constellations: Unsupervised Part Model Discovery with Convolutional Networks. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), pages 1143–1151, 2015.
+
+\bibitem{simonyan2013deep} K. Simonyan, A. Vedaldi, and A. Zisserman. Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps. In Workshop at the 2nd International Conference on Learning Representations (ICLR Workshop), 2014.
+
+\bibitem{simonyan2014very} K. Simonyan and A. Zisserman. Very Deep Convolutional Networks for Large-Scale Image Recognition. In Proceedings of the 3rd International Conference on Learning Representations (ICLR), 2015.
+
+\bibitem{sivic2003video} J. Sivic and A. Zisserman. Video Google: A Text Retrieval Approach to Object Matching in Videos. In Proceedings of the Ninth IEEE International Conference on Computer Vision (ICCV), page 1470. IEEE, 2003.
+
+\bibitem{smilkov2017smoothgrad} D. Smilkov, N. Thorat, B. Kim, F. Viégas, and M. Wattenberg. SmoothGrad: removing noise by adding noise. arXiv preprint arXiv:1706.03825, 2017.
+
+\bibitem{pmlr-v70-sundararajan17a} M. Sundararajan, A. Taly, and Q. Yan. Axiomatic Attribution for Deep Networks. In Proceedings of the 34th International Conference on Machine Learning (ICML), volume 70 of Proceedings of Machine Learning Research, pages 3319–3328. PMLR, 2017.
+
+\bibitem{uijlings2013selective} J. R. Uijlings, K. E. Van De Sande, T. Gevers, and A. W. Smeulders. Selective Search for Object Recognition. International Journal of Computer Vision, 104(2):154–171, 2013.
+
+\bibitem{Oord16} A. van den Oord, N. Kalchbrenner, and K. Kavukcuoglu. Pixel Recurrent Neural Networks. In Proceedings of the 33rd International Conference on Machine Learning (ICML), pages 1747–1756, 2016.
+
+\bibitem{CUB_200_2011} C. Wah, S. Branson, P. Welinder, P. Perona, and S. Belongie. The Caltech-UCSD Birds-200-2011 Dataset. Technical Report CNS-TR-2011-001, California Institute of Technology, 2011.
+
+\bibitem{wang2015multiple} D. Wang, Z. Shen, J. Shao, W. Zhang, X. Xue, and Z. Zhang. Multiple Granularity Descriptors for Fine-grained Categorization. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), pages 2399–2406, 2015.
+
+\bibitem{weinberger2009distance} K. Q. Weinberger and L. K. Saul. Distance Metric Learning for Large Margin Nearest Neighbor Classification. Journal of Machine Learning Research, 10(Feb):207–244, 2009.
+
+\bibitem{WuTabak2017} C. Wu and E. G. Tabak. Prototypal Analysis and Prototypal Regression. arXiv preprint arXiv:1701.08916, 2017.
+
+\bibitem{xiao2015application} T. Xiao, Y. Xu, K. Yang, J. Zhang, Y. Peng, and Z. Zhang. The Application of Two-Level Attention Models in Deep Convolutional Neural Network for Fine-grained Image Classification. In Computer Vision and Pattern Recognition (CVPR), 2015 IEEE Conference on, pages 842–850. IEEE, 2015.
+
+\bibitem{Yosinski2015} J. Yosinski, J. Clune, T. Fuchs, and H. Lipson. Understanding Neural Networks through Deep Visualization. In Deep Learning Workshop at the 32nd International Conference on Machine Learning (ICML), 2015.
+
+\bibitem{ZeilerFe14} M. D. Zeiler and R. Fergus. Visualizing and Understanding Convolutional Networks. In Proceedings of the European Conference on Computer Vision (ECCV), pages 818–833, 2014.
+
+\bibitem{zhang2016spda} H. Zhang, T. Xu, M. Elhoseiny, X. Huang, S. Zhang, A. Elgammal, and D. Metaxas. SPDA-CNN: Unifying Semantic Part Detection and Abstraction for Fine-grained Recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 1143–1152, 2016.
+
+\bibitem{zhang2014part} N. Zhang, J. Donahue, R. Girshick, and T. Darrell. Part-based R-CNNs for Fine-grained Category Detection. In Proceedings of the European Conference on Computer Vision (ECCV), pages 834–849. Springer, 2014.
+
+\bibitem{zhang2017interpretable} Q. Zhang, Y. N. Wu, and S.-C. Zhu. Interpretable Convolutional Neural Networks. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2018.
+
+\bibitem{zheng2017learning} H. Zheng, J. Fu, T. Mei, and J. Luo. Learning Multi-Attention Convolutional Neural Network for Fine-Grained Image Recognition. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), pages 5209–5217, 2017.
+
+\bibitem{zhou2016learning} B. Zhou, A. Khosla, A. Lapedriza, A. Oliva, and A. Torralba. Learning Deep Features for Discriminative Localization. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 2921–2929. IEEE, 2016.
+
+\bibitem{zhou2018interpretable} B. Zhou, Y. Sun, D. Bau, and A. Torralba. Interpretable Basis Decomposition for Visual Explanation. In Proceedings of the European Conference on Computer Vision (ECCV), pages 119–134, 2018.
+
+\end{thebibliography}
+
+\end{document}

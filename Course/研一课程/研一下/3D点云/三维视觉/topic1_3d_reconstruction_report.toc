@@ -1,0 +1,27 @@
+\contentsline {section}{\numberline {1}引言}{3}{section.1}%
+\contentsline {section}{\numberline {2}三维视觉重建的任务模型与评价维度}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}任务模型}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}输出表示}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}评价维度}{5}{subsection.2.3}%
+\contentsline {section}{\numberline {3}主流三维视觉重建技术原理分析}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}双目与多视图立体视觉}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}SfM+MVS 工程管线}{6}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}结构光三维重建}{6}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}ToF 与 RGB-D 重建}{7}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}激光雷达与激光扫描重建}{8}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}神经隐式重建：NeRF 与 3D Gaussian Splatting}{8}{subsection.3.6}%
+\contentsline {section}{\numberline {4}主流技术横向对比}{9}{section.4}%
+\contentsline {subsection}{\numberline {4.1}对比维度分析}{9}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}技术对比表}{10}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}选型建议表}{11}{subsection.4.3}%
+\contentsline {section}{\numberline {5}应用场景分析}{11}{section.5}%
+\contentsline {subsection}{\numberline {5.1}智能制造与工业质检}{11}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}文物保护与文化遗产数字化}{12}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}自动驾驶与移动机器人}{12}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}建筑测绘、基础设施与数字孪生}{12}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}AR/VR、数字内容与电商展示}{13}{subsection.5.5}%
+\contentsline {section}{\numberline {6}趋势判断与优化建议}{13}{section.6}%
+\contentsline {subsection}{\numberline {6.1}从“单技术竞争”走向“组合式系统设计”}{13}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}AI 的价值更适合落在“薄弱环节增强”}{13}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}围绕场景约束做前置选型}{14}{subsection.6.3}%
+\contentsline {section}{\numberline {7}结论}{14}{section.7}%

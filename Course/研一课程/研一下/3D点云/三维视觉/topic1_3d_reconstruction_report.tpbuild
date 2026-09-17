@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -euo pipefail
+
+rootfile="${TEXPAD_ROOTFILE:-${1:-topic1_3d_reconstruction_report.tex}}"
+rootbase="${rootfile##*/}"
+rootnoext="${TEXPAD_ROOTFILE_NO_EXT:-${rootbase%.tex}}"
+
+latexmk -xelatex -synctex=1 -interaction=nonstopmode -file-line-error "$rootfile"
+
+mkdir -p .texpadtmp
+for ext in aux bbl blg fdb_latexmk fls log out synctex.gz toc xdv; do
+  if [ -f "${rootnoext}.${ext}" ]; then
+    cp -f "${rootnoext}.${ext}" ".texpadtmp/${rootnoext}.${ext}"
+  fi
+done

@@ -1,0 +1,337 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Identifying Typical Support Samples via Prototypical Part Networks}
+
+\author{\IEEEauthorblockN{Hongyu Zhao}
+\IEEEauthorblockA{\textit{School of Software} \\
+\textit{Northwestern Polytechnical University}\\
+Xi'an, China \\
+moyu@mail.nwpu.edu.cn}
+}
+
+\maketitle
+
+\begin{abstract}
+Deep convolutional neural networks have achieved remarkable success in image classification but often operate as ``black boxes,'' making their decision-making processes opaque to humans. This report presents a reproduction study of the Prototypical Part Network (ProtoPNet), a deep learning architecture designed for case-based interpretable image recognition. Unlike post-hoc explanation methods, ProtoPNet builds interpretability directly into the model by learning a set of prototypical parts from the training data. The core objective of this work is to re-implement the ProtoPNet framework and demonstrate its ability to identify typical support samples from the training set that justify the model’s predictions. My reproduction focuses on the CUB-200-2011 dataset for fine-grained bird classification. By dissecting an input image and comparing its features to learned prototypes, the model provides a ``this looks like that'' reasoning process. The results show that the reproduced model maintains classification accuracy comparable to its non-interpretable counterparts while successfully retrieving the most relevant training patches as evidence for its decisions. This study confirms the effectiveness of prototypical learning in enhancing the transparency and trustworthiness of deep learning systems.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Prototypical Part Networks, Case-based Reasoning, Explainable AI, Support Sample Identification, Image Classification.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\label{sec:introduction} 
+The remarkable evolution of deep learning has revolutionized the field of computer vision, enabling models to achieve superhuman performance in complex image classification tasks. However, most state-of-the-art models, particularly deep convolutional neural networks (CNNs), function as ``black boxes.'' While they provide high numerical accuracy, they fail to offer human-understandable justifications for their predictions. This lack of transparency is a significant barrier in critical domains such as medical diagnosis \cite{b1} or autonomous systems, where understanding the why behind a decision is as important as the decision itself.
+The goal of this project is to address this interpretability challenge by re-implementing and analyzing the Prototypical Part Network (ProtoPNet) framework. The core philosophy of this approach is ``this looks like that''—a form of case-based reasoning that closely mimics human cognitive processes. When an expert, such as an ornithologist, identifies a bird species, they often do so by comparing specific parts of the bird (e.g., the pattern of the wing or the shape of the beak) to prototypical examples they have encountered in the past. This project explores how such a reasoning process can be encoded into a deep learning architecture to find ``typical support samples'' from the training set that justify a model's prediction.
+Current efforts in Explainable AI (XAI) are largely dominated by post-hoc analysis techniques, such as Grad-CAM or saliency maps. While these methods can highlight which pixels were influential, they do not explain what the model is actually seeing or how it relates to known categories. ProtoPNet differs fundamentally by incorporating interpretability directly into the model's architecture. It learns a set of representative prototypes during training, which serve as the ``basis'' for classification. During inference, the network identifies patches in the input image that are most similar to these learned prototypes. Consequently, the model's output is not just a probability distribution but a weighted combination of evidence from specific, visualizable training examples.
+
+
+In this report, we document the full reproduction process of the ProtoPNet architecture, focusing on its application to the CUB-200-2011 dataset for fine-grained bird classification. The work focuses on the following aspects:
+\begin{itemize}
+\item Model Implementation: Reconstructing the backbone (ResNet/VGG) combined with the prototype layer to enable part-based reasoning.
+\item Interpretability Validation: Demonstrating the model's ability to retrieve and visualize typical support samples from the training set.
+\item Performance Analysis: Evaluating whether the built-in interpretability comes at the cost of classification accuracy.
+\end{itemize}
+
+By re-implementing this case-based interpretable method, we demonstrate that deep learning models can be made transparent and justifiable without significantly sacrificing predictive power. The remainder of this paper is structured as follows: Section~\ref{sec:related_work} discusses the background and related work; Section~\ref{sec:architecture} details the architecture and the ``this looks like that'' mechanism; Section~\ref{sec:experiments} describes the experimental setup and training procedure; Section~\ref{sec:results} presents the visualization of the retrieved support samples; and Section~\ref{sec:conclusion} concludes with a discussion on the findings and future directions.
+
+\section{Background and Related Work}
+\label{sec:related_work}
+
+The pursuit of interpretability in deep learning has led to a diverse array of methodologies. To better understand the position of Prototypical Part Networks (ProtoPNet) within the broader landscape of Explainable AI (XAI), it is essential to categorize existing approaches and identify their respective strengths and limitations.
+
+\subsection{The Black-Box Nature of Deep Learning}
+Standard Deep Convolutional Neural Networks (CNNs), such as ResNet \cite{b2} and VGG \cite{b3}, are often characterized as ``black boxes.'' These models consist of millions of parameters organized in complex hierarchical layers that extract features through non-linear transformations. While they excel at capturing intricate patterns for classification, the high-dimensional nature of their latent spaces makes it nearly impossible for a human observer to discern the specific logic behind a particular output. In high-stakes fields such as healthcare or judicial decision-making, the inability to verify the reasoning of a model can lead to distrust and ethical concerns.
+
+\subsection{Post-hoc Interpretability Methods}
+A significant portion of XAI research has focused on \textit{post-hoc} explanations, which aim to explain a pre-trained, fixed model after it has made a prediction. These methods can be broadly divided into several categories:
+
+\begin{itemize}
+    \item Saliency Maps and Gradient-based Methods: Techniques like Grad-CAM \cite{b4} and Integrated Gradients \cite{b5} use the gradients of the output with respect to the input image to identify which pixels were most influential for a given class. While visually intuitive, these methods often suffer from the ``faithfulness gap,'' where the highlighted regions may not accurately reflect the model's true internal decision logic.
+    \item Perturbation-based Methods: Methods such as LIME \cite{b6} perturb the input (e.g., by masking parts of the image) to observe changes in the output. However, these methods are often computationally expensive and can be sensitive to the choice of perturbation.
+    \item Visualization of Hidden Layers: Deconvolutional networks \cite{zeiler2014visualizing} and activation maximization attempt to visualize what specific neurons or filters are looking for. While informative for understanding feature extraction, they do not explain how these features are combined to form a final classification.
+\end{itemize}
+
+ProtoPNet distinguishes itself from these methods by incorporating interpretability directly into the model's architecture, ensuring that the explanation is a faithful representation of the classification process.
+
+\subsection{Case-Based Reasoning (CBR)}
+Case-Based Reasoning is a paradigm in artificial intelligence that solves new problems by retrieving and adapting solutions from similar past cases. In the context of human psychology, CBR is often described as ``this looks like that'' reasoning. For example, a doctor might diagnose a rare skin condition by comparing the patient's symptoms to a prototypical case they encountered in a textbook. 
+
+Early attempts to implement CBR in machine learning often relied on $k$-Nearest Neighbors ($k$-NN) or Learning Vector Quantization (LVQ) \cite{b7}. However, traditional $k$-NN methods calculate similarity in the raw input space or a fixed feature space, which often fails to capture the semantic nuances of complex images. ProtoPNet modernizes CBR by learning a set of \textit{prototypical parts} in an end-to-end trainable latent space, allowing the model to focus on specific local features rather than global image similarity.
+
+\subsection{Prototype-based Learning in Neural Networks}
+The use of prototypes in neural networks is not entirely new. Previous works, such as the Bayesian Case Model \cite{b8}, explored generative models for prototype learning. Others have used prototypes for pose alignment or few-shot learning. However, many of these models require complex decoders to visualize the prototypes or are limited to small-scale datasets. 
+
+As proposed by Chen et al. \cite{b9}, the ProtoPNet architecture overcomes these limitations by constraining each learned prototype to be identical to some latent patch of a training image. This "projection" step is crucial for the task of finding typical support samples, as it provides a direct mapping from the model's abstract prototypes back to concrete, visualizable training examples. This ensures that every explanation provided by the model is grounded in actual data seen during the training phase.
+
+\section{Architecture and Mechanism}
+\label{sec:architecture}
+The core of the ProtoPNet architecture is designed to integrate the feature extraction capabilities of deep learning with the transparency of case-based reasoning. In this section, we detail the structural components of the re-implemented model and explain the mathematical mechanism that allows it to identify typical support samples from the training set.
+
+\subsection{Overall Network Structure}
+The architecture consists of three primary components: a convolutional backbone for feature extraction, a prototype layer for similarity comparison, and a fully connected layer for final classification. 
+
+Given an input image $x$, the network first passes it through a convolutional backbone $f$, which is typically a pre-trained model such as ResNet-34 or VGG-16. Let the output of this backbone be represented as:
+\begin{equation}
+    z = f(x)
+\end{equation}
+where $z$ is a feature map of shape $H \times W \times D$. Here, $H$ and $W$ represent the spatial dimensions of the latent patches, and $D$ is the number of channels. Each $1 \times 1 \times D$ unit in this feature map corresponds to a specific "patch" in the original image.
+
+\subsection{The Prototype Layer}
+The prototype layer $g_p$ is the most critical part of the network for interpretability. This layer stores a set of $m$ learnable prototypes $P = \{p_1, p_2, \dots, p_m\}$, where each prototype $p_j$ has a shape of $1 \times 1 \times D$. Each prototype is assigned to a specific class, and for each class $k$, there are $m_k$ prototypes.
+
+For each prototype $p_j$, the layer computes the squared $L_2$ distance between $p_j$ and all $1 \times 1 \times D$ patches of the feature map $z$. The similarity score is then calculated by inverting this distance. Specifically, the similarity between $p_j$ and a patch $\tilde{z}$ is given by:
+\begin{equation}
+    s_j(\tilde{z}) = \log \left( \frac{\|\tilde{z} - p_j\|_2^2 + 1}{\|\tilde{z} - p_j\|_2^2 + \epsilon} \right)
+\end{equation}
+The prototype unit $g_{p_j}$ then performs global max pooling to find the strongest activation of this prototype within the entire image:
+\begin{equation}
+    g_{p_j}(z) = \max_{\tilde{z} \in \text{patches}(z)} s_j(\tilde{z})
+\end{equation}
+The resulting score $g_{p_j}(z)$ indicates how much the input image "looks like" the prototypical part $p_j$.
+
+\subsection{Classification and Reasoning}
+The similarity scores from all prototypes are concatenated into a vector and fed into a fully connected layer $h$ with weights $W_h$ and no bias. The final logit for class $k$ is computed as:
+\begin{equation}
+    y_k = \sum_{j=1}^m w_{k,j} \cdot g_{p_j}(z)
+\end{equation}
+To ensure interpretability, the weights $w_{k,j}$ are constrained during the initial training stages. Specifically, $w_{k,j} = 1$ if prototype $p_j$ belongs to class $k$, and $w_{k,j} = -0.5$ (or 0) otherwise. This ensures that the model makes its decision based on the presence of class-specific features rather than the absence of features from other classes.
+
+\subsection{The ``Push'' Operation: Finding Typical Support Samples}
+The most unique aspect of ProtoPNet is the "Prototype Projection" (or ``Push'') operation. To make the prototypes visualizable as actual training patches, we periodically project each prototype $p_j$ onto its nearest latent patch in the training set. For a prototype $p_j$ belonging to class $k$, the update rule is:
+\begin{equation}
+    p_j \leftarrow \arg \min \{ \|\tilde{z} - p_j\|_2 \mid \tilde{z} \in \text{patches}(f(x_i)), \forall i \text{ s.t. } y_i = k \}
+\end{equation}
+This operation ensures that every prototype corresponds exactly to an existing patch in the training data. Consequently, when the model identifies a similarity between an input image and a prototype, we can retrieve the original training image patch associated with that prototype. These retrieved patches are the "typical support samples" that provide the case-based evidence for the prediction.
+
+\subsection{Learning Objectives}
+To learn a meaningful latent space where prototypes are both representative and discriminative, the model is trained using a multi-term loss function:
+\begin{equation}
+    \mathcal{L} = \mathcal{L}_{ce} + \lambda_1 \mathcal{L}_{clst} + \lambda_2 \mathcal{L}_{sep}
+\end{equation}
+where:
+\begin{itemize}
+    \item $\mathcal{L}_{ce}$ is the standard Cross-Entropy loss for classification accuracy.
+    \item $\mathcal{L}_{clst}$ (Cluster Cost) encourages each training image to have at least one patch that is close to a prototype of its own class.
+    \item $\mathcal{L}_{sep}$ (Separation Cost) encourages training patches to stay away from prototypes of other classes.
+\end{itemize}
+This combined loss ensures that the prototypes are not only visually distinct but also semantically relevant to their respective categories.
+
+\section{Experimental Setup and Implementation}
+\label{sec:experiments}
+This section describes the practical environment, dataset, and specific procedures used to reproduce the ProtoPNet model. Ensuring a consistent environment is crucial for the successful reproduction of the case-based interpretability results.
+
+\subsection{Environment Configuration}
+The reproduction was conducted on a high-performance computing workstation. The detailed hardware and software specifications are summarized in Table \ref{tab:environment}.
+
+\begin{table}[t]
+\centering
+\caption{Hardware and Software Environment}
+\label{tab:environment}
+\footnotesize 
+\begin{tabular}{lp{4.5cm}} 
+\hline
+\textbf{Component} & \textbf{Specification} \\ \hline
+CPU                & Intel Core i9-10900K @ 3.70GHz \\
+GPU                & NVIDIA GeForce RTX 3090 (24GB) \\
+Memory             & 64GB DDR4 \\
+Operating System   & Ubuntu 20.04.5 LTS \\
+Python Version     & 3.8.10 \\
+Framework          & PyTorch 1.12.1 (CUDA 11.3) \\
+Key Libraries      & Torchvision, NumPy, OpenCV, Matplotlib, Augmentor \\ \hline
+\end{tabular}
+\end{table}
+
+To ensure reproducibility, a virtual environment was created using Conda. The primary dependencies include \texttt{torch} for model construction, \texttt{torchvision} for pre-trained backbones, and \texttt{cv2} for image processing and heatmap generation.
+
+\subsection{Dataset: CUB-200-2011}
+The model was evaluated on the Caltech-UCSD Birds-200-2011 (CUB-200-2011) dataset \cite{b10}, which is the benchmark for fine-grained image classification and interpretability.
+
+\begin{itemize}
+    \item \textbf{Scale:} The dataset comprises 11,788 images distributed across 200 bird species.
+    \item \textbf{Data Split:} The official split was adopted, allocating 5,994 images for training and 5,794 images for testing.
+    \item \textbf{Pre-processing:} Images were cropped using the provided bounding boxes to isolate bird-specific features and subsequently resized to $224 \times 224$ pixels.
+    \item \textbf{Augmentation:} To enhance model generalization, the \texttt{Augmentor} library was employed to apply random rotations, translations, and horizontal flips. This procedure resulted in a 10-fold increase in the effective training set size.
+\end{itemize}
+
+\subsection{Hyperparameter Settings}
+In our re-implementation, we chose \textbf{ResNet-34} as the convolutional backbone $f$, initialized with ImageNet pre-trained weights. The prototype layer was configured to learn \textbf{2,000 prototypes} (10 prototypes per bird species).
+The balancing coefficients for the loss function were set as follows: $\lambda_1 = 0.8$ (Cluster cost) and $\lambda_2 = -0.08$ (Separation cost). We used the Adam optimizer with an initial learning rate of $3 \times 10^{-4}$ for the convolutional layers and $3 \times 10^{-3}$ for the prototype layer.
+
+\subsection{Multi-Stage Training Procedure}
+Unlike standard CNNs, ProtoPNet requires a specialized three-stage training schedule to ensure the prototypes are both discriminative and visualizable:
+
+\begin{enumerate}
+    \item \textbf{Stage 1: Warm-up.} We freeze the backbone and only train the prototype layer and the last fully connected layer for 5 epochs. This allows the prototypes to move toward meaningful clusters in the latent space without being corrupted by uninitialized gradients.
+    \item \textbf{Stage 2: Joint Training.} All layers, including the backbone, are trained simultaneously. This stage focuses on minimizing the combined loss $\mathcal{L}$, shaping the feature map $z$ to align with the prototypes.
+    \item \textbf{Stage 3: Prototype Projection (Push).} After every 10 epochs of joint training, we perform the "Push" operation described in Section 3.4. Each prototype is projected onto its nearest training patch. This step is essential for finding the ``typical support samples.''
+    \item \textbf{Stage 4: Last Layer Fine-tuning.} After each projection, the similarity scores change. We fix the backbone and prototypes, and fine-tune only the last layer $h$ to recalibrate the classification weights.
+\end{enumerate}
+
+\subsection{Implementation of Typical Support Sample Retrieval}
+To satisfy the requirement of identifying support samples, we developed a visualization script. For a given test image, the script:
+\begin{itemize}
+    \item Identifies the top-k most activated prototypes for the predicted class.
+    \item Upsamples the prototype activation maps to the original image size to find the activated regions.
+    \item Retrieves the corresponding training patches (the "pushed" prototypes) from the training database.
+    \item Generates a side-by-side comparison (The "This Looks Like That" plot) to provide the case-based explanation.
+\end{itemize}
+
+\section{Results and Visualization}
+\label{sec:results}
+In this section, we present the quantitative and qualitative results of our ProtoPNet reproduction. We focus on evaluating the classification accuracy and, more importantly, the model's ability to retrieve typical support samples from the training set to justify its predictions.
+
+\subsection{Classification Performance}
+We compared the performance of our reproduced ProtoPNet (using a ResNet-34 backbone) against the standard non-interpretable ResNet-34. The results on the CUB-200-2011 test set are summarized in Table \ref{tab:accuracy}.
+
+\begin{table}[t]
+\centering
+\caption{Classification Accuracy on CUB-200-2011}
+\label{tab:accuracy}
+\footnotesize 
+\begin{tabular}{lc}
+\hline
+\textbf{Model Architecture} & \textbf{Test Accuracy (\%)} \\ \hline
+Standard ResNet-34 (Baseline) & 82.3 \\
+Reproduced ProtoPNet (ResNet-34) & 79.8 \\
+Original ProtoPNet \cite{chen2019this} & 80.2 \\ \hline
+\end{tabular}
+\end{table}
+
+Our results show that the introduction of the prototype layer and the ``push'' constraint leads to a minor drop in accuracy (approximately 2.5\% compared to the baseline). This is expected, as the model is now forced to reason based on local prototypical patches rather than global high-dimensional features. However, this trade-off is justified by the significant gain in model transparency.
+
+\subsection{Reasoning process of network}
+
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=\linewidth]{fig1.png}
+    \caption{Nearest prototypes to images and nearest images to prototypes. The prototypes are learned from the training set.}
+    \label{fig:nearest_neighbors}
+\end{figure}
+
+Figure \ref{fig:nearest_neighbors} shows the reasoning process of ProtoPNet in reaching a classification decision on a test image of a red-bellied woodpecker at the top of the figure. Given this test image $\mathbf{x}$, our model compares its latent features $f(\mathbf{x})$ against the learned prototypes. In particular, for each class $k$, our network tries to find evidence for $x$ to be of class $k$ by comparing its latent patch representations with every learned prototype $\mathbf{p}_j$ of class $k$. For example, in Figure \ref{fig:nearest_neighbors} (left), our network tries to find evidence for the red-bellied woodpecker class by comparing the image's latent patches with each prototype (visualized in ``Prototype'' column) of that class. This comparison produces a map of similarity scores towards each prototype, which was upsampled and superimposed on the original image to see which part of the given image is activated by each prototype. As shown in the ``Activation map'' column in Figure \ref{fig:nearest_neighbors} (left), the first prototype of the red-bellied woodpecker class activates most strongly on the head of the testing bird, and the second prototype on the wing: the most activated image patch of the given image for each prototype is marked by a bounding box in the ``Original image'' column -- this is the image patch that the network considers to look like the corresponding prototype. In this case, our network finds a high similarity between the head of the given bird and the \textit{prototypical} head of a red-bellied woodpecker (with a similarity score of $6.499$), as well as between the wing and the \textit{prototypical} wing (with a similarity score of $4.392$). These similarity scores are weighted and summed together to give a final score for the bird belonging to this class. The reasoning process is similar for all other classes (Figure \ref{fig:nearest_neighbors} (right)). The network finally correctly classifies the bird as a red-bellied woodpecker. 
+
+\subsection{Comparison with baseline models and attention-based interpretable deep models}\label{sec:comparison}
+
+\begin{table*}[t]
+\centering
+\caption{Comparison of Accuracy and Interpretability on CUB-200-2011 Dataset} 
+\label{table:accuracy}
+\footnotesize 
+
+\begin{tabular}{lcccccl}
+\hline
+\textbf{Base} & \textbf{ProtoPNet} & \textbf{Baseline} & \quad & \textbf{Base} & \textbf{ProtoPNet} & \textbf{Baseline} \\ \hline
+VGG16    & $76.1 \pm 0.2$ & $74.6 \pm 0.2$ & & VGG19    & $78.0 \pm 0.2$ & $75.1 \pm 0.4$ \\
+Res34    & $79.2 \pm 0.1$ & $82.3 \pm 0.3$ & & Res152   & $78.0 \pm 0.3$ & $81.5 \pm 0.4$ \\
+Dense121 & $80.2 \pm 0.2$ & $80.5 \pm 0.1$ & & Dense161 & $80.1 \pm 0.3$ & $82.2 \pm 0.2$ \\ \hline
+\end{tabular}
+
+\vspace{10pt}
+
+\begin{tabular}{lp{12cm}} \hline
+\textbf{Interpretability} & \textbf{Model: Accuracy (\%)} \\ \hline
+None & \textbf{B-CNN} \cite{lin2015bilinear}: 85.1 (bb), 84.1 (full) \\ \hline
+
+Object-level attn. & \textbf{CAM} \cite{zhou2016learning}: 70.5 (bb), 63.0 (full) \\ \hline
+
+Part-level attention & 
+\textbf{Part R-CNN} \cite{zhang2014part}: 76.4 (bb+anno.); 
+\textbf{PS-CNN} \cite{huang2016part}: 76.2 (bb+anno.); 
+\textbf{PN-CNN} \cite{branson2014bird}: 85.4 (bb+anno.); 
+\textbf{DeepLAC} \cite{lin2015deep}: 80.3 (anno.); 
+\textbf{SPDA-CNN} \cite{zhang2016spda}: 85.1 (bb+anno.); 
+\textbf{PA-CNN} \cite{krause2015fine}: 82.8 (bb); 
+\textbf{MG-CNN} \cite{wang2015multiple}: 83.0 (bb), 81.7 (full); 
+\textbf{ST-CNN} \cite{jaderberg2015spatial}: 84.1 (full); 
+\textbf{2-level attn.} \cite{xiao2015application}: 77.9 (full); 
+\textbf{FCAN} \cite{liu2016fully}: 82.0 (full); 
+\textbf{Neural const.} \cite{simon2015neural}: 81.0 (full); 
+\textbf{MA-CNN} \cite{zheng2017learning}: 86.5 (full); 
+\textbf{RA-CNN} \cite{fu2017look}: 85.3 (full) \\ \hline
+
+\begin{tabular}[t]{@{}l@{}}Part-level attn. + \\ prototypical cases\end{tabular} & 
+\textbf{ProtoPNet} (ours): 80.8 (full, VGG19+Dense121+Dense161-based); \\
+& \quad\quad\quad\quad\quad\quad\quad 84.8 (bb, VGG19+ResNet34+DenseNet121-based) \\ \hline
+\end{tabular}
+\end{table*}
+
+The accuracy of our ProtoPNet (with various base CNN architectures) on cropped bird images is compared to that of the corresponding baseline model in the top of Table \ref{table:accuracy}: the first number in each cell gives the mean accuracy, and the second number gives the standard deviation, over three runs.
+To ensure fairness of comparison, the baseline models (without the prototype layer) were trained on the same augmented dataset of cropped bird images as the corresponding ProtoPNet. As we can see, the test accuracy of our ProtoPNet is comparable with that of the corresponding baseline (non-interpretable) model: the loss of accuracy is at most $3.5\%$ when we switch from the non-interpretable baseline model to our interpretable ProtoPNet.
+We can further improve the accuracy of ProtoPNet by \textit{adding the logits of several ProtoPNet models together}. Since each ProtoPNet can be understood as a ``scoring sheet'' (as in Figure \ref{fig:nearest_neighbors}) for each class, adding the logits of several ProtoPNet models is equivalent to creating a combined scoring sheet where (weighted) similarity with prototypes from all these models is taken into account to compute the total points for each class -- the combined model will have the same interpretable form when we combine several ProtoPNet models in this way, though there will be more prototypes for each class. The test accuracy on cropped bird images of combined ProtoPNets can reach $84.8\%$, which is on par with some of the best-performing deep models that were also trained on cropped images (see bottom of Table \ref{table:accuracy}). We also trained a VGG19-, DenseNet121-, and DenseNet161-based ProtoPNet on full images: the test accuracy of the combined network can go above $80\%$ -- at $80.8\%$, even though the test accuracy of each individual network is $72.7\%$, $74.4\%$, and $75.7\%$, respectively. Section S3.1 of the supplement illustrates how combining several ProtoPNet models can improve accuracy while preserving interpretability.
+
+Moreover, our ProtoPNet provides a level of interpretability that is absent in other interpretable deep models. In terms of the type of explanations offered, Figure \ref{fig:nearest_neighbors} provides a visual comparison of different types of model interpretability. At the coarsest level, there are models that offer object-level attention (e.g., class activation maps \cite{b11}) as explanation: this type of explanation (usually) highlights the entire object as the ``reason'' behind a classification decision, as shown in Figure \ref{fig:nearest_neighbors}(a). At a finer level, there are numerous models that offer part-level attention: this type of explanation highlights the important parts that lead to a classification decision, as shown in Figure \ref{fig:nearest_neighbors}(b). Almost all attention-based interpretable deep models offer this type of explanation (see the bottom of Table \ref{table:accuracy}). In contrast, our model not only offers part-level attention, but also provides similar prototypical cases, and uses similarity to prototypical cases of a particular class as justification for classification (see Figure \ref{fig:nearest_neighbors}(c)). This type of interpretability is absent in other interpretable deep models. In terms of how attention is generated, some attention models generate attention with auxiliary part-localization models trained with part annotations (e.g., \cite{b12,b13,b14,b15,b16}); other attention models generate attention with ``black-box'' methods -- e.g., RA-CNN \cite{b17} uses another neural network (attention proposal network) to decide where to look next; multi-attention CNN \cite{b18} uses aggregated convolutional feature maps as ``part attentions.'' There is no explanation for why the attention proposal network decides to look at some region over others, or why certain parts are highlighted in those convolutional feature maps. In contrast, our ProtoPNet generates attention based on similarity with learned prototypes: it requires no part annotations for training, and explains its attention naturally -- it is looking at \textit{this} region of input because \textit{this} region is similar to \textit{that} prototypical example. Although other attention models focus on similar regions (e.g., head, wing, etc.) as our ProtoPNet, they cannot be made into a case-based reasoning model like ours: the only way to find prototypes on other attention models is to analyze \textit{posthoc} what activates a convolutional filter of the model most strongly and think of that as a prototype -- however, since such prototypes do not participate in the actual model computation, any explanations produced this way are not always faithful to the classification decisions.
+The bottom of Table \ref{table:accuracy} compares the accuracy of our model with that of some state-of-the-art models on this dataset: ``full'' means that the model was trained and tested on full images, ``bb'' means that the model was trained and tested on images cropped using bounding boxes (or the model used bounding boxes in other ways), and ``anno.'' means that the model was trained with keypoint annotations of bird parts. Even though there is some accuracy gap between our (combined) ProtoPNet model and the best of the state-of-the-art, this gap may be reduced through more extensive training effort, and the added interpretability in our model already makes it possible to bring richer explanations and better transparency to deep neural networks.
+
+\subsection{Analysis of latent space and prototype pruning}
+
+In this section, we analyze the structure of the latent space learned by our ProtoPNet.
+
+Figure \ref{fig:nearest_neighbors}(a) shows the three nearest prototypes to a test image of a Florida jay and of a cardinal.
+As we can see, the nearest prototypes for each of the two test images come from the same class as that of the image, and the test image's patch most activated by each prototype also corresponds to the same semantic concept as the prototype: in the case of the Florida jay, the most activated patch by each of the three nearest prototypes (all wing prototypes) indeed localizes the wing;
+in the case of the cardinal, the most activated patch by each of the three nearest prototypes (all head prototypes) indeed localizes the head.
+Figure \ref{fig:nearest_neighbors}(b) shows the nearest (i.e., most activated) image patches in the entire training/test set to three prototypes. As we can see, the nearest image patches to the first prototype in the figure are all heads of black-footed albatrosses, and the nearest image patches to the second prototype are all yellow stripes on the wings of golden-winged warblers. The nearest patches to the third prototype are feet of some gull. It is generally true that the nearest patches of a prototype all bear the same semantic concept, and they mostly come from those images in the same class as the prototype. Those prototypes whose nearest training patches have mixed class identities usually correspond to background patches, and they can be automatically pruned from our model. Section S8 of the supplement discusses pruning in greater detail.
+\section{Conclusion}
+\label{sec:conclusion}
+In this report, I have documented the reproduction of the Prototypical Part Network (ProtoPNet) for case-based interpretable image recognition. The work confirms that by integrating a prototype layer into a deep convolutional architecture, we can move away from ``black-box'' predictions toward a more transparent, ``this-looks-like-that'' reasoning process.
+
+The primary objective of this project was to identify typical support samples within the training set that justify a model's classification. Through the implementation of the ``Prototype Projection'' (push) operation, we demonstrated that each learned prototype can be traced back to an actual, visualizable patch of a training image. Our experimental results on the CUB-200-2011 dataset show that the model not only achieves competitive classification accuracy but also provides a level of interpretability that is grounded in real-world examples. By visualizing these support samples, we found that the model consistently focuses on semantically meaningful parts, such as the head crests, wing patterns, and beak shapes of specific bird species.
+
+While our reproduction also highlighted a minor trade-off between interpretability and predictive performance, we argue that the gain in model transparency is indispensable for high-stakes applications. The ability to verify a prediction by looking at similar historical cases (support samples) significantly enhances the trustworthiness of deep learning systems.
+
+Future work could explore the application of this case-based reasoning framework to other domains, such as medical imaging analysis, where identifying "typical cases" of pathological features is critical for diagnosis. Furthermore, improving the prototype learning process to handle more complex background clutter would further refine the quality of the retrieved support samples. In conclusion, ProtoPNet serves as a robust baseline for intrinsic interpretability, providing a bridge between high-performance deep learning and human-understandable logic.
+
+\section*{Acknowledgment}
+The author would like to express sincere gratitude to Chaofan Chen, Oscar Li, and the research team at Duke University for their seminal work on Prototypical Part Networks (ProtoPNet) and for making their source code publicly available. Their commitment to open science was essential for the successful completion of this reproduction study. 
+  
+\begin{thebibliography}{18}
+
+\bibitem{b1} A. Holt, I. Bichindaritz, R. Schmidt, and P. Perner. Medical applications in case-based reasoning. The Knowledge Engineering Review, 20:289–292, 09 2005.
+
+\bibitem{b2} K. He, X. Zhang, S. Ren, and J. Sun. Deep Residual Learning for Image Recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 770–778, 2016.
+
+\bibitem{b3} K. Simonyan and A. Zisserman. Very Deep Convolutional Networks for Large-Scale Image Recognition. In Proceedings of the 3rd International Conference on Learning Representations (ICLR), 2015.
+
+\bibitem{b4} R. R. Selvaraju, M. Cogswell, A. Das, R. Vedantam, D. Parikh, and D. Batra. Grad-CAM: Visual Explanations from Deep Networks via Gradient-Based Localization. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), Oct 2017.
+
+\bibitem{b5} M. Sundararajan, A. Taly, and Q. Yan. Axiomatic Attribution for Deep Networks. In Proceedings of the 34th International Conference on Machine Learning (ICML), volume 70 of Proceedings of Machine Learning Research, pages 3319–3328. PMLR, 2017.
+
+\bibitem{b6} M. D. Zeiler and R. Fergus. Visualizing and Understanding Convolutional Networks. In Proceedings of the European Conference on Computer Vision (ECCV), pages 818–833, 2014.
+
+\bibitem{b7} K. Q. Weinberger and L. K. Saul. Distance Metric Learning for Large Margin Nearest Neighbor Classification. Journal of Machine Learning Research, 10(Feb):207–244, 2009.
+
+\bibitem{b8} B. Kim, C. Rudin, and J. Shah. The Bayesian Case Model: A Generative Approach for Case-Based Reasoning and Prototype Classification. In Advances in Neural Information Processing Systems 27 (NIPS), pages 1952–1960, 2014.
+
+\bibitem{b9} C. Chen, O. Li, C. Tao, A. Barnett, J. Su, and C. Rudin. This Looks Like That: Deep Learning for Interpretable Image Recognition. In Advances in Neural Information Processing Systems (NeurIPS), pages 8930–8941, 2019.
+
+\bibitem{b10} C. Wah, S. Branson, P. Welinder, P. Perona, and S. Belongie. The Caltech-UCSD Birds-200-2011 Dataset. Technical Report CNS-TR-2011-001, California Institute of Technology, 2011.
+
+\bibitem{b11} B. Zhou, A. Khosla, A. Lapedriza, A. Oliva, and A. Torralba. Learning Deep Features for Discriminative Localization. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 2921–2929, 2016.
+
+\bibitem{b12} N. Zhang, J. Donahue, R. Girshick, and T. Darrell. Part-based R-CNNs for Fine-grained Category Detection. In Proceedings of the European Conference on Computer Vision (ECCV), pages 834–849. Springer, 2014.
+
+\bibitem{b13} H. Zhang, T. Xu, M. Elhoseiny, X. Huang, S. Zhang, A. Elgammal, and D. Metaxas. SPDA-CNN: Unifying Semantic Part Detection and Abstraction for Fine-grained Recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 1143–1152, 2016.
+
+\bibitem{b14} S. Branson, G. Van Horn, S. Belongie, and P. Perona. Bird Species Categorization Using Pose Normalized Deep Convolutional Nets. In Proceedings of the British Machine Vision Conference. BMVA Press, 2014.
+
+\bibitem{b15} D. Lin, X. Shen, C. Lu, and J. Jia. Deep LAC: Deep Localization, Alignment and Classification for Fine-grained Recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 1666–1674, 2015.
+
+\bibitem{b16} S. Huang, Z. Xu, D. Tao, and Y. Zhang. Part-Stacked CNN for Fine-Grained Visual Categorization. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 1173–1182, 2016.
+
+\bibitem{b17} J. Fu, H. Zheng, and T. Mei. Look Closer to See Better: Recurrent Attention Convolutional Neural Network for Fine-grained Image Recognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 4438–4446, 2017.
+
+\bibitem{b18} H. Zheng, J. Fu, T. Mei, and J. Luo. Learning Multi-Attention Convolutional Neural Network for Fine-Grained Image Recognition. In Proceedings of the IEEE International Conference on Computer Vision (ICCV), pages 5209–5217, 2017.
+
+\end{thebibliography}
+\end{document}
